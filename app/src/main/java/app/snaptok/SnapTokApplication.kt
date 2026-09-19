@@ -6,6 +6,8 @@ import androidx.room.Room
 import app.snaptok.data.DownloadDatabase
 import app.snaptok.data.DownloadQueue
 import app.snaptok.data.AndroidDownloadScheduler
+import app.snaptok.data.DownloadPreferences
+import app.snaptok.data.MIGRATION_1_2
 import app.snaptok.download.DownloadNotifications
 import app.snaptok.download.GalleryPublisher
 import app.snaptok.download.YtDlpEngine
@@ -23,10 +25,11 @@ class SnapTokApplication : Application() {
 }
 class AppContainer(context: Context) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    val database = Room.databaseBuilder(context, DownloadDatabase::class.java, "downloads.db").build()
+    val database = Room.databaseBuilder(context, DownloadDatabase::class.java, "downloads.db").addMigrations(MIGRATION_1_2).build()
     val dao = database.downloads()
-    val queue = DownloadQueue(dao, AndroidDownloadScheduler(context))
+    val preferences = DownloadPreferences(context)
+    val queue = DownloadQueue(dao, AndroidDownloadScheduler(context)) { preferences.snapshot().options }
     val engine = YtDlpEngine(context)
     val publisher = GalleryPublisher(context)
-    val notifications = DownloadNotifications(context)
+    val notifications = DownloadNotifications(context, preferences)
 }

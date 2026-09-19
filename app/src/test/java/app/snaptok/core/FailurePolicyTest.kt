@@ -16,6 +16,11 @@ class FailurePolicyTest {
             assertFalse(FailurePolicy.shouldRetry(FailurePolicy.classify(IOException(it)), 0))
         }
     }
+    @Test fun protectedOrVideoLessPostsFailWithoutPointlessRetries() {
+        listOf("This tweet is protected", "Sign in to view this post", "No video could be found in this tweet").forEach {
+            assertFalse(FailurePolicy.classify(IOException(it)).retryable)
+        }
+    }
     @Test fun extractorErrorsGiveActionableAdviceWithoutLeakingRawLogs() {
         val failure = FailurePolicy.classify(IOException("Unable to extract webpage https://vm.tiktok.com/private-token"))
         assertTrue(failure.retryable)

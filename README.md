@@ -1,16 +1,22 @@
 # SnapTok
 
-Personal Android app for saving TikTok videos from the Android share sheet. Built for Android 10+; the first target phone is a Samsung Galaxy S24 Ultra.
+Personal Android app for saving TikTok and public X/Twitter videos from the Android share sheet. Built for Android 10+; the first target phone is a Samsung Galaxy S24 Ultra.
 
 ## Everyday use
 
-1. Install the debug APK and open SnapTok once. Allow notifications if you want progress and failure alerts.
-2. The APK bundles yt-dlp 2026.08.19, verified during development. If TikTok changes break extraction later, use **Settings > Update engine**. This fetches the latest stable yt-dlp release from GitHub; keep SnapTok open while it updates.
-3. In TikTok, choose **Share**, then **SnapTok** (possibly under **More**). The share screen closes after the request is persisted.
-4. Continue using TikTok. Finished MP4s appear in **Movies/SnapTok** in the gallery.
-5. Open SnapTok for manual link entry, history, cancellation, retry or engine updates.
+1. Install the v0.2.0 APK over v0.1.0; do not uninstall. Your history is migrated and preserved.
+2. Open Settings to choose a default quality, destination folder and notification preferences. Android notification permission is also required for system alerts.
+3. In TikTok or X, choose **Share**, then **SnapTok** (possibly under **More**). The request is queued using your saved preferences; no second Download tap is required.
+4. For manual downloads, use the paste icon, optionally check **Quality** for available resolutions, choose a folder, then press **Download video**. Accepted input clears automatically.
+5. When saving finishes, the enabled completion notification can open the video. Failures appear in history and enabled alerts. Tap a source URL in history to open the original post.
 
-The app saves the best available single MP4 with sound, including a watermarked copy when that is what the source supplies. It does not promise watermark removal. Ordinary public video posts are supported; photo slideshows, live streams, private posts and account login are outside this version.
+The default destination is **Movies/SnapTok** in the gallery. Custom folders use Android's picker; some providers appear only in Files. New preferences apply to new jobs, while queued jobs and retries retain their options.
+
+The APK bundles verified yt-dlp 2026.08.19. If source changes break extraction, use **Settings > Update engine** and keep the app open while it updates. Public video posts only: no account/login support, private posts, slideshows or live streams. X multi-video posts select the explicit `/video/2` suffix when supplied, otherwise the first video. Generic `t.co` links are not accepted.
+
+Quality preferences never upscale. The source's best available supported MP4 at or below the preferred resolution is selected, falling back to the smallest available if necessary. Audio is retained when available in the selected file; separate video/audio streams are not merged. A watermarked copy is accepted when that is what the source provides.
+
+See [v0.2 changes](docs/v0.2-changes.md) for the folder and notification behaviour, and the versioned validation report for test coverage.
 
 ## Build
 
@@ -30,15 +36,15 @@ APK: `app/build/outputs/apk/debug/app-debug.apk`. This is a debug-signed persona
 - Room: source URL, status, retries and published media URI.
 - WorkManager: durable unique requests, connectivity constraint, expedited start when quota allows and foreground download notification.
 - youtubedl-android 0.18.1: bundled on-device Python/yt-dlp. No paid API or backend.
-- MediaStore: validated videos are published with `IS_PENDING`, without broad storage permission.
+- MediaStore: default gallery publication uses `IS_PENDING`. Custom folders use a persisted SAF grant, verified temporary file and final rename; neither needs broad storage access.
 
-Both entry points use the same queue. Tracking parameters are removed from ordinary post URLs. Repeated canonical links are suppressed. Different short-link aliases may still produce duplicate saves because canonical video identity is not known at enqueue time. Retry is manual for failed/cancelled jobs and automatic up to three attempts for temporary errors. Force-stop and manufacturer power restrictions can delay work; reopen SnapTok to reconcile incomplete jobs.
+Both entry points use the same queue. Tracking parameters are removed from ordinary post URLs. Identical URL/quality/destination requests are deduplicated; choosing another quality or folder permits another copy. Different short-link aliases may still produce duplicate saves because canonical video identity is not known at enqueue time. Retry is manual for failed/cancelled jobs and automatic up to three attempts for temporary errors. Force-stop and manufacturer power restrictions can delay work; reopen SnapTok to reconcile incomplete jobs.
 
-The share target acknowledges **queued**, not **saved**. Only a validated, published gallery file receives Saved status. Visible progress is intentionally quiet. Failure alerts require notification permission; otherwise consult history.
+The share target acknowledges **queued**, not **saved**. Only a validated, published gallery file receives Saved status. Progress is quiet. Completion/failure alerts and brief messages are configurable and require notification permission. Android’s required foreground-service indicator remains even when optional alerts are disabled; history remains available.
 
 ## Privacy
 
-No analytics, account, adverts, clipboard monitoring or backend. Links, staging files and job history stay on-device. Extraction contacts TikTok and its media hosts. Explicit engine updates contact GitHub. Android backup is disabled. Uninstalling removes private app data; published gallery videos remain.
+No analytics, account, adverts, clipboard monitoring or backend. Links, staging files and job history stay on-device. Extraction contacts TikTok/X and their media hosts. If you choose a cloud folder provider, that provider receives the saved file. Explicit engine updates contact GitHub. Android backup is disabled. Uninstalling removes private app data; published gallery videos remain.
 
 ## Development and release notes
 

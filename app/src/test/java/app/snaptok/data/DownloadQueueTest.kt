@@ -77,6 +77,20 @@ class DownloadQueueTest {
         context.deleteDatabase("durability-test")
         Unit
     }
+    @Test fun snapshotsPreferencesAndAllowsAnotherQualityOrFolder() = runBlocking {
+        var defaults = DownloadOptions(720, "content://test/tree/one", "Folder one")
+        val localQueue = DownloadQueue(dao, scheduler) { defaults }
+        localQueue.enqueue(URL)
+        defaults = DownloadOptions(1080, "content://test/tree/two", "Folder two")
+        localQueue.enqueue(URL)
+        val jobs = dao.incomplete()
+        assertEquals(2, jobs.size)
+        assertEquals(720, jobs[0].qualityHeight)
+        assertEquals("Folder one", jobs[0].destinationLabel)
+        assertEquals(1080, jobs[1].qualityHeight)
+        assertEquals("Already queued", localQueue.enqueue(URL))
+        assertEquals(2, dao.incomplete().size)
+    }
     private class FakeScheduler : DownloadScheduler {
         val jobs = mutableListOf<String>()
         val cancelled = mutableListOf<String>()

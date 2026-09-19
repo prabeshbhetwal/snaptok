@@ -27,7 +27,7 @@ class ShareActivity : ComponentActivity() {
                         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text("SnapTok", style = MaterialTheme.typography.titleLarge)
                             Text(error.value ?: "Adding to your download queue…")
-                            if (error.value != null) TextButton(onClick = { finish() }) { Text("Back to TikTok") }
+                            if (error.value != null) TextButton(onClick = { finish() }) { Text("Back") }
                             else LinearProgressIndicator(Modifier.fillMaxWidth())
                         }
                     }
@@ -36,7 +36,7 @@ class ShareActivity : ComponentActivity() {
         }
         lifecycleScope.launch {
             try {
-                require(intent.action == Intent.ACTION_SEND && intent.type == "text/plain") { "Share a TikTok video link to SnapTok." }
+                require(intent.action == Intent.ACTION_SEND && intent.type == "text/plain") { "Share a TikTok or X video link to SnapTok." }
                 val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString().orEmpty()
                 val message = (application as SnapTokApplication).container.queue.enqueue(text)
                 Toast.makeText(this@ShareActivity, message, Toast.LENGTH_SHORT).show()

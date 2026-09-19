@@ -44,11 +44,13 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
             }
             currentCoroutineContext().ensureActive()
             if (dao.saving(jobId) == 0) return Result.success()
+            if (foreground) container.notifications.saving(jobId)
             // Finish atomic gallery publication and its database receipt together,
             // even if WorkManager requests cancellation during the copy.
             withContext(NonCancellable) {
                 val uri = publisher.publish(job, video)
                 dao.saved(jobId, video.title, uri)
+                if (foreground) runCatching { container.notifications.completed(jobId, video.title, uri, job.destinationLabel) }
             }
             withContext(Dispatchers.IO) { directory.deleteRecursively() }
             Result.success()
@@ -59,7 +61,7 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
             val retry = FailurePolicy.shouldRetry(failure, runAttemptCount)
             dao.failed(jobId, if (retry) JobStatus.RETRYING else JobStatus.FAILED, failure.message)
             if (retry) Result.retry() else {
-                if (foreground) container.notifications.failed(jobId, failure.message)
+                if (foreground) runCatching { container.notifications.failed(jobId, failure.message) }
                 // A terminal job failure is recorded in Room. Do not poison other queued work.
                 Result.success()
             }

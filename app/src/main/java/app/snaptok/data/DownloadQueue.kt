@@ -2,7 +2,7 @@ package app.snaptok.data
 
 import android.content.Context
 import androidx.work.*
-import app.snaptok.core.TikTokLink
+import app.snaptok.core.VideoLink
 import app.snaptok.download.DownloadWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -11,13 +11,13 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-class DownloadQueue(private val dao: DownloadDao, private val scheduler: DownloadScheduler) {
+class DownloadQueue(private val dao: DownloadDao, private val scheduler: DownloadScheduler, private val defaultOptions: () -> DownloadOptions = { DownloadOptions() }) {
     private val lock = Mutex()
     val jobs = dao.observeAll()
 
-    suspend fun enqueue(text: String): String = lock.withLock {
-        val link = TikTokLink.parse(text)
-        val existing = dao.findUrl(link.url)
+    suspend fun enqueue(text: String, options: DownloadOptions = defaultOptions()): String = lock.withLock {
+        val link = VideoLink.parse(text)
+        val existing = dao.findRequest(downloadRequestKey(link.url, options))
         if (existing != null) {
             if (existing.status == JobStatus.SAVED) return@withLock "Already saved"
             if (existing.status in listOf(JobStatus.FAILED, JobStatus.CANCELLED)) {
@@ -28,7 +28,9 @@ class DownloadQueue(private val dao: DownloadDao, private val scheduler: Downloa
             schedule(existing.id)
             return@withLock "Already queued"
         }
-        val job = DownloadJob(UUID.randomUUID().toString(), link.url)
+        val job = DownloadJob(UUID.randomUUID().toString(), link.url,
+            qualityHeight = options.qualityHeight, destinationTreeUri = options.destinationTreeUri,
+            destinationLabel = options.destinationLabel)
         dao.insert(job)
         schedule(job.id)
         "Queued — you can keep scrolling"

@@ -27,6 +27,7 @@ class GalleryPublisher(private val context: Context) : VideoPublisher {
                 throw IOException("Downloaded file is not a playable video")
             }
         }
+        if (job.destinationTreeUri != null) return@withContext FolderStorage(context).publish(job, video)
         val resolver = context.contentResolver
         val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         val name = "SnapTok-${job.id}.mp4"
