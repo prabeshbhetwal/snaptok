@@ -1,0 +1,18 @@
+# Third-party notices
+
+This project depends on the following projects. Their licences remain applicable to their respective code and assets.
+
+| Dependency | Licence | Source |
+|---|---|---|
+| youtubedl-android 0.18.1 (library/common) | GPL-3.0 | https://github.com/yausername/youtubedl-android |
+| yt-dlp | Unlicense for the project; bundled components have separate terms | https://github.com/yt-dlp/yt-dlp |
+| AndroidX / Jetpack | Apache-2.0 | https://android.googlesource.com/platform/frameworks/support/ |
+| Kotlin / kotlinx.coroutines | Apache-2.0 | https://github.com/JetBrains/kotlin |
+| Jackson | Apache-2.0 | https://github.com/FasterXML/jackson |
+| Commons IO | Apache-2.0 | https://commons.apache.org/proper/commons-io/ |
+
+The native wrapper contains a Python runtime and dependencies with their own licences. A complete transitive licence inventory and corresponding-source package must be prepared before distributing publicly. This notice is not a substitute for those obligations. No upstream app UI or branding was copied. SnapTok is not affiliated with TikTok, SnapTik or ByteDance.
+
+## Pinned extractor payload
+
+`app/src/main/res/raw/ytdlp` overrides the wrapper's older bundled payload with the official yt-dlp 2026.08.19 Python zip executable. Source and licence: https://github.com/yt-dlp/yt-dlp/tree/2026.08.19 . Binary: https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp . Verified SHA-256 from GitHub release metadata: `1fa6733c37ea6fb51c99ad8fe785e7b7e5f3246c9b980230329d4fb72ed8d4d6`.

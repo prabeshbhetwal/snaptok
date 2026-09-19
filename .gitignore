@@ -1,0 +1,11 @@
+*.iml
+.gradle/
+.kotlin/
+.idea/
+local.properties
+**/build/
+work/
+*.jks
+*.keystore
+.DS_Store
+graphify-out/

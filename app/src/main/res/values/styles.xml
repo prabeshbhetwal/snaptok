@@ -1,0 +1,16 @@
+<resources>
+    <style name="Theme.SnapTok" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:statusBarColor">#101A18</item>
+        <item name="android:navigationBarColor">#101A18</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+    <style name="Theme.SnapTok.Share" parent="Theme.SnapTok">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+</resources>
