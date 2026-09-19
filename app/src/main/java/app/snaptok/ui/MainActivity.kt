@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.rgb(16, 26, 24))
         )
-        window.isNavigationBarContrastEnforced = false
+        window.isNavigationBarContrastEnforced = true
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = false

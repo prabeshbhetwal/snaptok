@@ -36,7 +36,7 @@ Room and WorkManager tests support recovery logic; they do not prove every manuf
 
 - File: `SnapTok-0.1.0-debug.apk`
 - Size: 81,633,388 bytes
-- SHA-256: `7ecccca2e6a6a0c959c37a3d1fea39f67829b5a70d43689bc3fb58ba99f59a1d`
+- SHA-256: `9aa058657cf7adc3389e57cb82914ac0d147edf774a1025b2ab5370a31f4c24f`
 - App ID: `app.snaptok`
 - Version: `0.1.0` (1)
 - Bundled extractor: yt-dlp `2026.08.19`
