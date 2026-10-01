@@ -72,11 +72,21 @@ class DownloadWorkerTest {
         assertEquals(JobStatus.FAILED, db.downloads().get(job.id)!!.status)
         assertNull(db.downloads().get(job.id)!!.mediaUri)
     }
+    @Test fun interruptionCannotResurrectUserCancellation() = runBlocking {
+        val interrupted = object : DownloadEngine {
+            override suspend fun download(job: DownloadJob, directory: File, progress: (Int) -> Unit): DownloadedVideo {
+                db.downloads().cancel(job.id)
+                throw CancellationException("User cancelled")
+            }
+        }
+        try { worker().execute(db.downloads(), interrupted, publisher, false); fail("Expected cancellation") } catch (_: CancellationException) { }
+        assertEquals(JobStatus.CANCELLED, db.downloads().get(job.id)!!.status)
+    }
     @Test fun coroutineCancellationIsNotReportedAsFailure() = runBlocking {
         try {
             worker().execute(db.downloads(), engine(CancellationException("Stopped")), publisher, false)
             fail("Cancellation was swallowed")
         } catch (_: CancellationException) { }
-        assertNotEquals(JobStatus.FAILED, db.downloads().get(job.id)!!.status)
+        assertEquals(JobStatus.QUEUED, db.downloads().get(job.id)!!.status)
     }
 }

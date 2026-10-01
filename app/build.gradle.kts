@@ -4,6 +4,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
 }
+// Local CLI builds can keep generated binaries outside synchronised project folders.
+providers.environmentVariable("SNAPTOK_BUILD_DIR").orNull?.let { layout.buildDirectory.set(file(it)) }
 android {
     namespace = "app.snaptok"
     compileSdk = 35
@@ -11,12 +13,30 @@ android {
         applicationId = "app.snaptok"
         minSdk = 29
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 6
+        versionName = "0.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }
     }
-    buildFeatures { compose = true }
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            isUniversalApk = true
+        }
+    }
+    buildFeatures { compose = true; buildConfig = true }
+    buildTypes {
+        // Local testing only: retain the installed preview's signer for safe upgrades.
+        // Public releases must use a dedicated release key / Play App Signing.
+        create("preview") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+            matchingFallbacks += listOf("release")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -43,6 +63,10 @@ dependencies {
     ksp("androidx.room:room-compiler:2.7.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("io.github.junkfood02.youtubedl-android:library:0.18.1")
+    implementation("io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1")
+    implementation("androidx.media3:media3-exoplayer:1.6.1")
+    implementation("androidx.media3:media3-ui:1.6.1")
+    implementation("androidx.media3:media3-transformer:1.6.1")
     // Override old transitive versions from the Android extractor wrapper.
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
     implementation("commons-io:commons-io:2.18.0")

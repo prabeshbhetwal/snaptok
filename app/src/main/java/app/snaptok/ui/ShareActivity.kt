@@ -21,7 +21,7 @@ class ShareActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val error = mutableStateOf<String?>(null)
         setContent {
-            SnapTokTheme {
+            SnapTokTheme((application as app.snaptok.SnapTokApplication).container.preferences.snapshot().theme) {
                 Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                     Card {
                         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -36,7 +36,7 @@ class ShareActivity : ComponentActivity() {
         }
         lifecycleScope.launch {
             try {
-                require(intent.action == Intent.ACTION_SEND && intent.type == "text/plain") { "Share a TikTok or X video link to SnapTok." }
+                require(intent.action == Intent.ACTION_SEND && intent.type == "text/plain") { "Share a supported video-post link to SnapTok." }
                 val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString().orEmpty()
                 val message = (application as SnapTokApplication).container.queue.enqueue(text)
                 Toast.makeText(this@ShareActivity, message, Toast.LENGTH_SHORT).show()

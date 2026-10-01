@@ -4,6 +4,8 @@ import android.content.Context
 import app.snaptok.data.DownloadJob
 import app.snaptok.core.VideoQuality
 import app.snaptok.core.AvailableQualities
+import app.snaptok.core.MediaChoice
+import com.yausername.ffmpeg.FFmpeg
 import java.util.UUID
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -19,36 +21,66 @@ import java.io.File
 interface DownloadEngine {
     suspend fun download(job: DownloadJob, directory: File, progress: (Int) -> Unit): DownloadedVideo
 }
-data class DownloadedVideo(val file: File, val title: String)
+data class DownloadedVideo(val file: File, val title: String, val creator: String = "", val caption: String = "", val sourceId: String = "", val audioOnly: Boolean = false) {
+    val mimeType: String get() = if (audioOnly) "audio/mp4" else "video/mp4"
+    val extension: String get() = if (audioOnly) "m4a" else "mp4"
+}
 
 class YtDlpEngine(private val context: Context) : DownloadEngine {
     private val mutex = Mutex()
     override suspend fun download(job: DownloadJob, directory: File, progress: (Int) -> Unit): DownloadedVideo = mutex.withLock {
-        withTimeout(8 * 60 * 1000L) { runInterruptible(Dispatchers.IO) {
+        withTimeout(60 * 60 * 1000L) { runInterruptible(Dispatchers.IO) {
             YoutubeDL.init(context)
+            FFmpeg.init(context)
+            check(context.cacheDir.usableSpace > 16 * 1024 * 1024) { "No space left for staging" }
             check(directory.exists() || directory.mkdirs()) { "Could not create download folder" }
             val request = YoutubeDLRequest(job.url).apply {
                 addOption("--no-playlist")
-                addOption("--playlist-items", "1")
+                addOption("--match-filter", "!is_live")
+                addOption("--playlist-items", job.itemIndex.toString())
                 addOption("--no-mtime")
                 addOption("--newline")
                 addOption("--socket-timeout", 20)
                 addOption("--retries", 2)
                 addOption("--fragment-retries", 2)
-                addOption("--max-filesize", "1G")
+                addOption("--max-filesize", "${job.maxSizeMb}M")
                 addOption("--write-info-json")
                 addOption("--no-write-playlist-metafiles")
-                // Select one already muxed MP4; no FFmpeg or server is required.
-                addOption("-f", VideoQuality.selector(job.qualityHeight))
+                if (job.audioOnly) {
+                    addOption("-f", "bestaudio/best")
+                    addOption("--extract-audio")
+                    addOption("--audio-format", "m4a")
+                } else {
+                    addOption("-f", VideoQuality.selector(job.qualityHeight))
+                    addOption("--merge-output-format", "mp4")
+                }
+                val quickjs = File(context.applicationInfo.nativeLibraryDir, "libqjs.so")
+                if (quickjs.isFile) addOption("--js-runtimes", "quickjs:${quickjs.absolutePath}")
                 VideoQuality.sort(job.qualityHeight)?.let { addOption("-S", it) }
                 addOption("-o", File(directory, "video.%(ext)s").absolutePath)
             }
             YoutubeDL.execute(request, job.id) { value, _, _ -> progress(value.toInt().coerceIn(0, 100)) }
-            val file = File(directory, "video.mp4")
+            val file = File(directory, if (job.audioOnly) "video.m4a" else "video.mp4")
+            check(file.isFile) { "No downloadable media returned" }
+            check(file.length() <= job.maxSizeMb.toLong() * 1024 * 1024) { "Video exceeds the selected file size limit" }
             val info = File(directory, "video.info.json")
-            val title = runCatching { JSONObject(info.readText()).optString("title").take(160) }
-                .getOrDefault("").ifBlank { "Video" }
-            DownloadedVideo(file, title)
+            val metadata = runCatching { JSONObject(info.readText()) }.getOrNull()
+            val title = metadata?.optString("title")?.takeUnless { it == "null" }?.take(160).orEmpty().ifBlank { "Video" }
+            val formats = metadata?.optJSONArray("formats")
+            val sourceReportsAudio = (0 until (formats?.length() ?: 0)).any { index ->
+                formats!!.getJSONObject(index).optString("acodec").let { it.isNotBlank() && it != "none" && it != "null" }
+            }
+            if (sourceReportsAudio || job.audioOnly) android.media.MediaMetadataRetriever().use { reader ->
+                reader.setDataSource(file.absolutePath)
+                if (reader.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO) != "yes")
+                    throw IllegalStateException("Audio verification failed after merging")
+            }
+            DownloadedVideo(file, title, metadata?.optString("uploader")?.takeUnless { it == "null" }.orEmpty().take(200), metadata?.optString("description")?.takeUnless { it == "null" }.orEmpty().take(4000),
+                metadata?.let { info ->
+                    val provider = info.optString("extractor_key").takeUnless { it.isBlank() || it == "null" }
+                    val identity = info.optString("id").takeUnless { it.isBlank() || it == "null" }
+                    if (provider != null && identity != null) "$provider:$identity" else ""
+                }.orEmpty(), job.audioOnly)
         } }
     }
 
@@ -59,7 +91,7 @@ class YtDlpEngine(private val context: Context) : DownloadEngine {
                 addOption("--dump-single-json")
                 addOption("--skip-download")
                 addOption("--no-playlist")
-                addOption("--playlist-items", "1")
+                addOption("--playlist-end", "50")
                 addOption("--socket-timeout", 20)
                 addOption("--retries", 1)
             }
@@ -72,7 +104,10 @@ class YtDlpEngine(private val context: Context) : DownloadEngine {
                     format.optString("vcodec").takeIf { it.isNotBlank() && it != "null" },
                     format.optString("acodec").takeIf { it.isNotBlank() && it != "null" })
             }
-            AvailableQualities(url, video.optString("title", "Video"), VideoQuality.heights(available))
+            val entries = info.optJSONArray("entries")
+            val choices = if (entries == null) listOf(MediaChoice(1, video.optString("title", "Video"))) else
+                (0 until entries.length()).mapNotNull { i -> entries.optJSONObject(i)?.let { MediaChoice(i + 1, it.optString("title", "Video ${i + 1}")) } }
+            AvailableQualities(url, video.optString("title", "Video"), VideoQuality.heights(available), choices)
         } }
     }
 

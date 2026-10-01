@@ -33,7 +33,10 @@ class ManualInputTest {
         val container = (context.applicationContext as SnapTokApplication).container
         val options = container.preferences.snapshot().options
         val link = "https://www.tiktok.com/@snaptoktest/video/999999999999999999"
-        val job = DownloadJob(UUID.randomUUID().toString(), link, status = JobStatus.SAVED,
+        container.dao.findUrl(link)?.let { old -> container.queue.cancel(old.id); container.dao.removeFinished(old.id) }
+        val fixture = java.io.File(context.cacheDir, "manual-input-saved.mp4")
+        instrumentation.context.assets.open("sample.mp4").use { input -> fixture.outputStream().use { input.copyTo(it) } }
+        val job = DownloadJob(UUID.randomUUID().toString(), link, status = JobStatus.SAVED, mediaUri = android.net.Uri.fromFile(fixture).toString(),
             qualityHeight = options.qualityHeight, destinationTreeUri = options.destinationTreeUri, destinationLabel = options.destinationLabel)
         container.dao.insert(job)
         try {
@@ -41,13 +44,22 @@ class ManualInputTest {
             device.findObject(By.text("Download video")).click()
             assertTrue("Accepted input should clear", device.wait(Until.gone(By.text(link)), 5_000))
         } finally {
+            container.queue.cancel(job.id)
             container.database.openHelper.writableDatabase.execSQL("DELETE FROM downloads WHERE id = ?", arrayOf(job.id))
+            fixture.delete()
         }
+    }
+    @Test fun changingTabsKeepsTheEnteredLink() {
+        launchAndPaste("not a video link")
+        device.findObject(By.text("Settings")).click()
+        assertTrue(device.wait(Until.hasObject(By.text("Make it yours.")),5000))
+        device.findObject(By.text("Save")).click()
+        assertTrue(device.wait(Until.hasObject(By.text("not a video link")),5000))
     }
     @Test fun rejectedInputStaysAvailableForCorrection() {
         launchAndPaste("not a video link")
         device.findObject(By.text("Download video")).click()
-        assertTrue(device.wait(Until.hasObject(By.textContains("Use a TikTok or X")), 5_000))
+        assertTrue(device.wait(Until.hasObject(By.textContains("Use a supported video-post link")), 5_000))
         assertNotNull(device.findObject(By.text("not a video link")))
     }
 }

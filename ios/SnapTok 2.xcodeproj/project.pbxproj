@@ -1,0 +1,511 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0C630AA4E4BF4044CF89C8FB /* SnapTokCore in Frameworks */ = {isa = PBXBuildFile; productRef = C338076FB525BCF8DA165870 /* SnapTokCore */; };
+		4098C049FE2ADD839A55A822 /* SnapTokUI in Frameworks */ = {isa = PBXBuildFile; productRef = D43334FDA419CBA8668AC227 /* SnapTokUI */; };
+		60D18AAC0CDB1039F6CCE06B /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B1F90D80C3FA4AC0DC419F /* ShareViewController.swift */; };
+		646DC6C96C2C63F6384C1D52 /* SnapTokShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 37D29C5D8D098E1023233ADA /* SnapTokShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		749C729D724A74BCB37E1C55 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4B3BCF001738BEC1C5A59D34 /* PrivacyInfo.xcprivacy */; };
+		7E824E13F78CD40303F244CD /* SnapTokCore in Frameworks */ = {isa = PBXBuildFile; productRef = FDB3443EA89D8EE0E276F21F /* SnapTokCore */; };
+		A2ABD63F40C900931CE98DC7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4B3BCF001738BEC1C5A59D34 /* PrivacyInfo.xcprivacy */; };
+		E748A83CE201C46735926127 /* SnapTokApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636CF0B6760B065DFB276BF4 /* SnapTokApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DC320067A4FB681FFDFC8513 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AEFE179A1F6BEBB934AEA3B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AF90AE64E0E7E86D59ABC788;
+			remoteInfo = SnapTokShare;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		47D336B161B37EA2A3C1AEB4 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				646DC6C96C2C63F6384C1D52 /* SnapTokShare.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		23D0CF45D403C9486B14D5EF /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
+		37D29C5D8D098E1023233ADA /* SnapTokShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = SnapTokShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4B3BCF001738BEC1C5A59D34 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		61B1F90D80C3FA4AC0DC419F /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		636CF0B6760B065DFB276BF4 /* SnapTokApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapTokApp.swift; sourceTree = "<group>"; };
+		CA8864353D0F87145CA01E71 /* SnapTok.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SnapTok.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0606EE202D580EA64DB13A4 /* ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ios; path = .; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		11383DED1D16D8FBAB1334ED /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E824E13F78CD40303F244CD /* SnapTokCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9287B46D8307928EC1F39964 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4098C049FE2ADD839A55A822 /* SnapTokUI in Frameworks */,
+				0C630AA4E4BF4044CF89C8FB /* SnapTokCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		193B3BBCBC47620B74D5C9D2 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				636CF0B6760B065DFB276BF4 /* SnapTokApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		1CE24834F910551C3BA08A53 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				23D0CF45D403C9486B14D5EF /* Base.xcconfig */,
+				4B3BCF001738BEC1C5A59D34 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Configuration;
+			sourceTree = "<group>";
+		};
+		6D222AE221FD0F00DD1DD5BC /* ShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				61B1F90D80C3FA4AC0DC419F /* ShareViewController.swift */,
+			);
+			path = ShareExtension;
+			sourceTree = "<group>";
+		};
+		6F0708CA2065313B98EEEED5 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				E0606EE202D580EA64DB13A4 /* ios */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		86DF0E65DCCFF48D84573A86 = {
+			isa = PBXGroup;
+			children = (
+				193B3BBCBC47620B74D5C9D2 /* App */,
+				1CE24834F910551C3BA08A53 /* Configuration */,
+				6F0708CA2065313B98EEEED5 /* Packages */,
+				6D222AE221FD0F00DD1DD5BC /* ShareExtension */,
+				F563B20ACBF006F69E2A6735 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F563B20ACBF006F69E2A6735 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CA8864353D0F87145CA01E71 /* SnapTok.app */,
+				37D29C5D8D098E1023233ADA /* SnapTokShare.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		06F4D9DEA33822200ED81C17 /* SnapTok */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00CE6EEE53447153C3A84350 /* Build configuration list for PBXNativeTarget "SnapTok" */;
+			buildPhases = (
+				5DD411C593FEAA829332BB9B /* Sources */,
+				1A7B3F754563D8DFE33B21B5 /* Resources */,
+				9287B46D8307928EC1F39964 /* Frameworks */,
+				47D336B161B37EA2A3C1AEB4 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3770D498A9775FCC445CDCE9 /* PBXTargetDependency */,
+			);
+			name = SnapTok;
+			packageProductDependencies = (
+				D43334FDA419CBA8668AC227 /* SnapTokUI */,
+				C338076FB525BCF8DA165870 /* SnapTokCore */,
+			);
+			productName = SnapTok;
+			productReference = CA8864353D0F87145CA01E71 /* SnapTok.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AF90AE64E0E7E86D59ABC788 /* SnapTokShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8638DA3E0D43C177A6DDC85A /* Build configuration list for PBXNativeTarget "SnapTokShare" */;
+			buildPhases = (
+				FB29C9A5F2D8D6CBE4113C68 /* Sources */,
+				B97ABD4425EBCCDE768C1E9E /* Resources */,
+				11383DED1D16D8FBAB1334ED /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SnapTokShare;
+			packageProductDependencies = (
+				FDB3443EA89D8EE0E276F21F /* SnapTokCore */,
+			);
+			productName = SnapTokShare;
+			productReference = 37D29C5D8D098E1023233ADA /* SnapTokShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AEFE179A1F6BEBB934AEA3B5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					06F4D9DEA33822200ED81C17 = {
+						ProvisioningStyle = Automatic;
+					};
+					AF90AE64E0E7E86D59ABC788 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = F89DB30D5F720E0B6F071896 /* Build configuration list for PBXProject "SnapTok" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 86DF0E65DCCFF48D84573A86;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6CA954AFACCE39EE0C3525E3 /* XCLocalSwiftPackageReference "." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F563B20ACBF006F69E2A6735 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				06F4D9DEA33822200ED81C17 /* SnapTok */,
+				AF90AE64E0E7E86D59ABC788 /* SnapTokShare */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1A7B3F754563D8DFE33B21B5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				749C729D724A74BCB37E1C55 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B97ABD4425EBCCDE768C1E9E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A2ABD63F40C900931CE98DC7 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5DD411C593FEAA829332BB9B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E748A83CE201C46735926127 /* SnapTokApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FB29C9A5F2D8D6CBE4113C68 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				60D18AAC0CDB1039F6CCE06B /* ShareViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3770D498A9775FCC445CDCE9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AF90AE64E0E7E86D59ABC788 /* SnapTokShare */;
+			targetProxy = DC320067A4FB681FFDFC8513 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		169C68C70AC24ACE5F7D734E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Configuration/Share.entitlements;
+				INFOPLIST_FILE = "Configuration/Share-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(SNAPTOK_BUNDLE_ID).share";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		4FD315CC5C670181B9790C3A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Configuration/App.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = "Configuration/App-Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(SNAPTOK_BUNDLE_ID)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5A60FC8FAA68FCA80989DE77 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Configuration/Share.entitlements;
+				INFOPLIST_FILE = "Configuration/Share-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(SNAPTOK_BUNDLE_ID).share";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		61EA5D4AF4BDF772118FA2F9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 23D0CF45D403C9486B14D5EF /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BC9DDC7DA555E5063A89DC22 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 23D0CF45D403C9486B14D5EF /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FDB03F21DDB2C9218B07AE38 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Configuration/App.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = "Configuration/App-Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(SNAPTOK_BUNDLE_ID)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		00CE6EEE53447153C3A84350 /* Build configuration list for PBXNativeTarget "SnapTok" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4FD315CC5C670181B9790C3A /* Debug */,
+				FDB03F21DDB2C9218B07AE38 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8638DA3E0D43C177A6DDC85A /* Build configuration list for PBXNativeTarget "SnapTokShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A60FC8FAA68FCA80989DE77 /* Debug */,
+				169C68C70AC24ACE5F7D734E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F89DB30D5F720E0B6F071896 /* Build configuration list for PBXProject "SnapTok" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC9DDC7DA555E5063A89DC22 /* Debug */,
+				61EA5D4AF4BDF772118FA2F9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		6CA954AFACCE39EE0C3525E3 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C338076FB525BCF8DA165870 /* SnapTokCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SnapTokCore;
+		};
+		D43334FDA419CBA8668AC227 /* SnapTokUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SnapTokUI;
+		};
+		FDB3443EA89D8EE0E276F21F /* SnapTokCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SnapTokCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = AEFE179A1F6BEBB934AEA3B5 /* Project object */;
+}

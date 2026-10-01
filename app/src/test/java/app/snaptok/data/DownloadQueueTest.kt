@@ -91,6 +91,39 @@ class DownloadQueueTest {
         assertEquals("Already queued", localQueue.enqueue(URL))
         assertEquals(2, dao.incomplete().size)
     }
+    @Test fun historyRemovalCannotRemoveActiveJobs() = runBlocking {
+        queue.enqueue(URL)
+        val id = dao.incomplete().single().id
+        assertEquals(0, dao.removeFinished(id))
+        assertNotNull(dao.get(id))
+        queue.cancel(id)
+        assertEquals(1, dao.removeFinished(id))
+        assertNull(dao.get(id))
+    }
+    @Test fun missingSavedFileCanBeQueuedAgain() = runBlocking {
+        queue.enqueue(URL)
+        val id = dao.incomplete().single().id
+        dao.saved(id,"Previously saved","content://missing/file")
+        val recovery = DownloadQueue(dao,scheduler,fileExists={false})
+        assertEquals("Saved file missing — downloading again",recovery.enqueue(URL))
+        assertEquals(JobStatus.QUEUED,dao.get(id)!!.status)
+        assertTrue(scheduler.replaced)
+    }
+    @Test fun capturesNetworkSizeAndMediaSelection() = runBlocking {
+        queue.enqueue(URL,DownloadOptions(unmetered=true,charging=true,maxSizeMb=50,itemIndex=2,audioOnly=true))
+        val job=dao.incomplete().single()
+        assertTrue(job.unmetered);assertTrue(job.charging);assertTrue(job.audioOnly)
+        assertEquals(50,job.maxSizeMb);assertEquals(2,job.itemIndex)
+        assertTrue(job.requestKey.contains("item=2"));assertTrue(job.requestKey.endsWith("|audio"))
+    }
+    @Test fun newRequestAfterFailureCanChangeLimitsWithoutDuplicatingHistory() = runBlocking {
+        queue.enqueue(URL,DownloadOptions(maxSizeMb=50))
+        val id=dao.incomplete().single().id
+        dao.failed(id,JobStatus.FAILED,"Too large")
+        queue.enqueue(URL,DownloadOptions(maxSizeMb=250,charging=true))
+        assertEquals(250,dao.get(id)!!.maxSizeMb);assertTrue(dao.get(id)!!.charging)
+        assertEquals(1,dao.incomplete().size)
+    }
     private class FakeScheduler : DownloadScheduler {
         val jobs = mutableListOf<String>()
         val cancelled = mutableListOf<String>()

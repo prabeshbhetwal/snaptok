@@ -29,7 +29,18 @@ data class DownloadJob(
     @ColumnInfo(defaultValue = "0") val qualityHeight: Int = 0,
     val destinationTreeUri: String? = null,
     @ColumnInfo(defaultValue = "'Gallery · Movies/SnapTok'") val destinationLabel: String = DEFAULT_DESTINATION,
-    @ColumnInfo(defaultValue = "''") val requestKey: String = downloadRequestKey(url, DownloadOptions(qualityHeight, destinationTreeUri, destinationLabel))
+    @ColumnInfo(defaultValue = "''") val requestKey: String = downloadRequestKey(url, DownloadOptions(qualityHeight, destinationTreeUri, destinationLabel)),
+    @ColumnInfo(defaultValue = "0") val unmetered: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val charging: Boolean = false,
+    @ColumnInfo(defaultValue = "1024") val maxSizeMb: Int = 1024,
+    @ColumnInfo(defaultValue = "1") val itemIndex: Int = 1,
+    @ColumnInfo(defaultValue = "0") val audioOnly: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val favourite: Boolean = false,
+    @ColumnInfo(defaultValue = "''") val collection: String = "",
+    @ColumnInfo(defaultValue = "''") val creator: String = "",
+    @ColumnInfo(defaultValue = "''") val caption: String = "",
+    @ColumnInfo(defaultValue = "''") val sourceId: String = ""
+
 )
 
 @Dao
@@ -38,6 +49,18 @@ interface DownloadDao {
     @Query("SELECT * FROM downloads WHERE id = :id") suspend fun get(id: String): DownloadJob?
     @Query("SELECT * FROM downloads WHERE url = :url") suspend fun findUrl(url: String): DownloadJob?
     @Query("SELECT * FROM downloads WHERE requestKey = :key") suspend fun findRequest(key: String): DownloadJob?
+    @Query("DELETE FROM downloads WHERE id = :id AND status IN ('Saved', 'Failed', 'Cancelled')")
+    suspend fun removeFinished(id: String): Int
+    @Query("SELECT * FROM downloads") suspend fun all(): List<DownloadJob>
+    @Query("UPDATE downloads SET favourite = :value WHERE id = :id") suspend fun favourite(id: String, value: Boolean)
+    @Query("UPDATE downloads SET collection = :value WHERE id = :id") suspend fun collection(id: String, value: String)
+    @Query("UPDATE downloads SET creator = :creator, caption = :caption, sourceId = :sourceId WHERE id = :id")
+    suspend fun metadata(id: String, creator: String, caption: String, sourceId: String)
+    @Query("UPDATE downloads SET status = 'Queued', mediaUri = NULL, progress = 0 WHERE id = :id AND status = 'Saved'") suspend fun missing(id: String): Int
+    @Query("UPDATE downloads SET unmetered = :unmetered, charging = :charging, maxSizeMb = :limit WHERE id = :id AND status IN ('Failed', 'Cancelled', 'Saved')")
+    suspend fun requestOptions(id: String, unmetered: Boolean, charging: Boolean, limit: Int)
+    @Query("UPDATE downloads SET status = 'Queued', error = NULL WHERE id = :id AND status = 'Downloading'")
+    suspend fun interrupted(id: String)
     @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insert(job: DownloadJob): Long
     @Query("SELECT * FROM downloads WHERE status IN ('Queued', 'Downloading', 'Saving', 'Retrying') ORDER BY createdAt")
     suspend fun incomplete(): List<DownloadJob>
@@ -57,7 +80,7 @@ interface DownloadDao {
     suspend fun reset(id: String): Int
 }
 
-@Database(entities = [DownloadJob::class], version = 2, exportSchema = true)
+@Database(entities = [DownloadJob::class], version = 3, exportSchema = true)
 abstract class DownloadDatabase : RoomDatabase() { abstract fun downloads(): DownloadDao }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -69,5 +92,16 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         db.execSQL("UPDATE downloads SET requestKey = url || '|0|'")
         db.execSQL("DROP INDEX index_downloads_url")
         db.execSQL("CREATE UNIQUE INDEX index_downloads_requestKey ON downloads(requestKey)")
+    }
+}
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        listOf("unmetered" to "0", "charging" to "0", "maxSizeMb" to "1024", "itemIndex" to "1", "audioOnly" to "0", "favourite" to "0").forEach { (name, default) ->
+            db.execSQL("ALTER TABLE downloads ADD COLUMN $name INTEGER NOT NULL DEFAULT $default")
+        }
+        listOf("collection", "creator", "caption", "sourceId").forEach {
+            db.execSQL("ALTER TABLE downloads ADD COLUMN $it TEXT NOT NULL DEFAULT ''")
+        }
     }
 }

@@ -14,8 +14,8 @@ class VideoQualityTest {
         )
         assertEquals(listOf(1080, 720), VideoQuality.heights(formats))
     }
-    @Test fun doesNotOfferVideoOnlyResolutionWhenAudioFormatsExist() {
-        assertEquals(listOf(720), VideoQuality.heights(listOf(VideoFormat("mp4", 1080, true, false), VideoFormat("mp4", 720, true, true))))
+    @Test fun offersSeparateVideoResolutionsNowThatMergingIsSupported() {
+        assertEquals(listOf(1080, 720), VideoQuality.heights(listOf(VideoFormat("mp4", 1080, true, false), VideoFormat("mp4", 720, true, true))))
     }
     @Test fun supportsSourcesThatAreActuallySilent() {
         assertEquals(listOf(480), VideoQuality.heights(listOf(VideoFormat("mp4", 480, true, false))))
@@ -25,7 +25,7 @@ class VideoQualityTest {
         val direct = VideoQuality.format("mp4", 720, 720, null, null)
         val separateVideo = VideoQuality.format("mp4", 1080, 1080, "avc1", "none")
         val audioOnly = VideoQuality.format("mp4", 0, 0, "none", "aac")
-        assertEquals(listOf(720), VideoQuality.heights(listOf(direct, separateVideo, audioOnly)))
+        assertEquals(listOf(1080, 720), VideoQuality.heights(listOf(direct, separateVideo, audioOnly)))
         assertFalse(VideoQuality.selector(720).contains("[vcodec!="))
     }
     @Test fun qualityPreferenceDoesNotUpscaleOrRequireAnUnavailableExactFormat() {

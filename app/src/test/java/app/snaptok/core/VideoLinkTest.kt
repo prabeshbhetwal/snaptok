@@ -36,6 +36,17 @@ class VideoLinkTest {
     @Test fun rejectsXProfilesAndLookalikeDomains() {
         listOf("https://x.com/user", "https://x.com.evil.test/user/status/1234567890", "https://twitter.com@evil.test/user/status/1234567890", "https://t.co/whatever").forEach(::reject)
     }
+    @Test fun instagramAliasesDeduplicateAndStripTracking() {
+        val expected = "https://www.instagram.com/p/Chunk8-jurw/"
+        assertEquals(expected, VideoLink.parse("Look https://www.instagram.com/reel/Chunk8-jurw/?igsh=tracking").url)
+        assertEquals(expected, VideoLink.parse("http://m.instagram.com/reels/Chunk8-jurw/").url)
+        assertEquals(expected, VideoLink.parse("https://www.instagram.com/p/Chunk8-jurw/").url)
+    }
+    @Test fun rejectsInstagramProfilesStoriesSpoofingAndEncodedPaths() {
+        listOf("https://instagram.com/author/", "https://instagram.com/stories/author/1234/",
+            "https://instagram.com.evil.test/reel/abc/", "https://evil@instagram.com/p/abc/",
+            "https://instagram.com:123/p/abc/", "https://instagram.com/p/abc%2fdef/").forEach(::reject)
+    }
     private fun reject(value: String) {
         try { VideoLink.parse(value); fail("Accepted unsupported URL: $value") } catch (_: IllegalArgumentException) { }
     }

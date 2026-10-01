@@ -16,9 +16,15 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import java.io.File
+import java.util.UUID
+import app.snaptok.download.*
+import app.snaptok.core.parseBatch
 
 sealed interface UiEvent {
-    data class Message(val text: String) : UiEvent
+    data class Message(val text: String, val openJobId: String? = null) : UiEvent
     data class Accepted(val input: String) : UiEvent
 }
 
@@ -26,14 +32,85 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val container = (application as SnapTokApplication).container
     val jobs = container.queue.jobs.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val preferences = container.preferences.state
-    private val eventChannel = Channel<UiEvent>(Channel.BUFFERED)
-    val events = eventChannel.receiveAsFlow()
+    private val eventChannel = MutableSharedFlow<UiEvent>(extraBufferCapacity = 32)
+    val events = eventChannel.asSharedFlow()
+    val input = MutableStateFlow("")
+    private suspend fun accepted(text: String) {
+        if (input.value == text) input.value = ""
+        eventChannel.emit(UiEvent.Accepted(text))
+    }
     val busy = MutableStateFlow(false)
     val updating = MutableStateFlow(false)
     val inspecting = MutableStateFlow(false)
     val qualities = MutableStateFlow<AvailableQualities?>(null)
     val engineVersion = MutableStateFlow(container.engine.version())
     private var inspection: Job? = null
+    val page = MutableStateFlow(0)
+    val player = MutableStateFlow<DownloadJob?>(null)
+    val storage = MutableStateFlow<StorageSummary?>(null)
+    val exporting = MutableStateFlow(false)
+    fun openJob(id: String) = viewModelScope.launch { player.value = container.dao.get(id) }
+    fun closePlayer() { player.value = null }
+    fun favourite(job: DownloadJob) = viewModelScope.launch { container.dao.favourite(job.id, !job.favourite) }
+    fun collection(job: DownloadJob, name: String) = viewModelScope.launch { container.dao.collection(job.id, name.trim().take(60)) }
+    fun savePlatform(platform: String, enabled: Boolean) = viewModelScope.launch {
+        try { withContext(Dispatchers.IO) { container.preferences.savePlatform(platform, enabled) }; message(if (enabled) "Current quality and folder saved for $platform" else "$platform uses global defaults") }
+        catch (_: Exception) { message("Could not save platform defaults") }
+    }
+    fun defaultsFor(text: String): DownloadOptions = runCatching { container.preferences.optionsFor(VideoLink.parse(text).url) }.getOrDefault(preferences.value.options)
+    fun platformOverride(platform: String) = container.preferences.platformOverride(platform)
+    fun refreshStorage() = viewModelScope.launch { storage.value = StorageManager(getApplication(), container.dao).summary() }
+    fun cleanCache() = viewModelScope.launch {
+        val bytes = container.queue.cleanTemporaryFiles(File(getApplication<Application>().cacheDir, "staging"))
+        message("Cleared ${android.text.format.Formatter.formatFileSize(getApplication(), bytes)} of inactive temporary files")
+        refreshStorage()
+    }
+    fun deleteFile(job: DownloadJob) = viewModelScope.launch {
+        try { StorageManager(getApplication(), container.dao).delete(job); message("File deleted"); refreshStorage() }
+        catch (e: CancellationException) { throw e }
+        catch (_: Exception) { message("Could not delete the file. Check folder access, or delete it in Files.") }
+    }
+    fun exportMedia(job: DownloadJob, startSeconds: Long, endSeconds: Long?, audio: Boolean) = viewModelScope.launch {
+        if (exporting.value) return@launch
+        exporting.value = true
+        val id = UUID.randomUUID().toString()
+        val file = File(getApplication<Application>().cacheDir, "export-$id.${if (audio) "m4a" else "mp4"}")
+        try {
+            require(job.mediaUri != null) { "Saved file unavailable" }
+            MediaTools.export(getApplication(), Uri.parse(job.mediaUri), file, Math.multiplyExact(startSeconds, 1000L), endSeconds?.let { Math.multiplyExact(it, 1000L) }, audio)
+            val newJob = job.copy(id = id, createdAt = System.currentTimeMillis(), title = (if (audio) "Audio · " else "Clip · ") + job.title,
+                destinationLabel = if (audio && job.destinationTreeUri == null) "Music · Music/SnapTok" else job.destinationLabel,
+                audioOnly = audio, status = JobStatus.SAVED, mediaUri = null, sourceId = "", requestKey = "export:$id")
+            val uri = container.publisher.publish(newJob, DownloadedVideo(file, newJob.title, audioOnly = audio))
+            container.dao.insert(newJob.copy(mediaUri = uri))
+            message("Export saved · ${newJob.destinationLabel}")
+        } catch (e: CancellationException) { throw e }
+        catch (_: Exception) { message("Could not export this media. Check the time range and that an audio track exists.") }
+        finally { withContext(Dispatchers.IO) { file.delete() }; exporting.value = false }
+    }
+    fun enqueueSelection(text: String, quality: Int, indices: Set<Int>, audio: Boolean, batch: Boolean) = viewModelScope.launch {
+        if (busy.value) return@launch
+        busy.value = true
+        try {
+            val links = if (batch) parseBatch(text) else listOf(VideoLink.parse(text))
+            val chosen = if (batch) setOf(1) else indices.ifEmpty { setOf(1) }
+            var count = 0; var last = ""
+            for (link in links) for (index in chosen.sorted()) {
+                val options = container.preferences.optionsFor(link.url).copy(qualityHeight = quality, itemIndex = index, audioOnly = audio)
+                last = container.queue.enqueue(link.url, options); count++
+                if (links.size == 1 && chosen.size == 1 && last == "Already saved") {
+                    val existing = container.dao.findRequest(downloadRequestKey(link.url, options))
+                    accepted(text)
+                    eventChannel.emit(UiEvent.Message("Already saved", existing?.id))
+                    return@launch
+                }
+            }
+            accepted(text)
+            message(if (count == 1) last else "$count links processed. Existing saves were kept.")
+        } catch (e: CancellationException) { throw e }
+        catch (e: Exception) { message(e.message ?: "Could not queue these links") }
+        finally { busy.value = false }
+    }
 
     init {
         viewModelScope.launch {
@@ -43,12 +120,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 previous = current.associate { it.id to it.status }
                 if (old != null) current.forEach { job ->
                     if (old[job.id] != job.status && job.status in listOf(JobStatus.SAVED, JobStatus.FAILED))
-                        message(if (job.status == JobStatus.SAVED) "Video downloaded · ${job.destinationLabel}" else job.error ?: "Download failed")
+                        message(if (job.status == JobStatus.SAVED) "Download complete · ${job.destinationLabel}" else job.error ?: "Download failed")
                 }
             }
         }
     }
-    private suspend fun message(text: String) { eventChannel.send(UiEvent.Message(text)) }
+    private suspend fun message(text: String) { eventChannel.emit(UiEvent.Message(text)) }
     fun notify(text: String) { viewModelScope.launch { message(text) } }
 
     fun enqueue(text: String, qualityHeight: Int) = viewModelScope.launch {
@@ -56,7 +133,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         busy.value = true
         try {
             val result = container.queue.enqueue(text, preferences.value.options.copy(qualityHeight = qualityHeight))
-            eventChannel.send(UiEvent.Accepted(text))
+            accepted(text)
             message(result)
         } catch (e: CancellationException) { throw e }
         catch (e: Exception) { message(if (e is IllegalArgumentException) e.message.orEmpty() else "Could not schedule the download. Reopen SnapTok to recover the queue.") }
@@ -104,6 +181,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         catch (e: CancellationException) { throw e }
         catch (_: Exception) { message("Could not cancel. Check download history.") }
     }
+    fun removeHistory(id: String) = viewModelScope.launch {
+        try { container.dao.removeFinished(id); message("Removed from history. Saved file kept.") }
+        catch (e: CancellationException) { throw e }
+        catch (_: Exception) { message("Could not remove this entry. Please try again.") }
+    }
+    fun retryInCurrentFolder(job: DownloadJob) = enqueue(job.url, job.qualityHeight)
     fun updateEngine() = viewModelScope.launch {
         if (updating.value) return@launch
         updating.value = true

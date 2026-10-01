@@ -22,16 +22,16 @@ class GalleryPublisher(private val context: Context) : VideoPublisher {
         if (!video.file.isFile || video.file.length() < 1024) throw IOException("Downloaded file is incomplete")
         MediaMetadataRetriever().use { metadata ->
             metadata.setDataSource(video.file.absolutePath)
-            if (metadata.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO) != "yes" ||
+            if (metadata.extractMetadata(if (video.audioOnly) MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO else MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO) != "yes" ||
                 (metadata.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0) <= 0) {
                 throw IOException("Downloaded file is not a playable video")
             }
         }
         if (job.destinationTreeUri != null) return@withContext FolderStorage(context).publish(job, video)
         val resolver = context.contentResolver
-        val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        val name = "SnapTok-${job.id}.mp4"
-        val folder = "Movies/SnapTok/"
+        val collection = if (video.audioOnly) MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY) else MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val name = "SnapTok-${job.id}.${video.extension}"
+        val folder = if (video.audioOnly) "Music/SnapTok/" else "Movies/SnapTok/"
         // Stable name recovers publication after process death, including the window
         // between making the file visible and recording its URI in Room.
         val query = Bundle().apply {
@@ -51,7 +51,7 @@ class GalleryPublisher(private val context: Context) : VideoPublisher {
         val values = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, name)
             put(MediaStore.Video.Media.TITLE, video.title)
-            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            put(MediaStore.Video.Media.MIME_TYPE, video.mimeType)
             put(MediaStore.Video.Media.RELATIVE_PATH, folder)
             put(MediaStore.Video.Media.IS_PENDING, 1)
         }

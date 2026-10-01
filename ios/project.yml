@@ -1,0 +1,118 @@
+name: SnapTok
+options:
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "27.0"
+  createIntermediateGroups: true
+packages:
+  SnapTokKit:
+    path: .
+configFiles:
+  Debug: Configuration/Base.xcconfig
+  Release: Configuration/Base.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+targets:
+  SnapTok:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - path: Configuration/PrivacyInfo.xcprivacy
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(SNAPTOK_BUNDLE_ID)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+    dependencies:
+      - package: SnapTokKit
+        product: SnapTokUI
+      - package: SnapTokKit
+        product: SnapTokCore
+      - target: SnapTokShare
+        embed: true
+    info:
+      path: Configuration/App-Info.plist
+      properties:
+        CFBundleDisplayName: SnapTok
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        SnapTokAppGroup: $(SNAPTOK_APP_GROUP)
+        SnapTokKeychainGroup: $(AppIdentifierPrefix)$(SNAPTOK_BUNDLE_ID)
+        UIApplicationSupportsIndirectInputEvents: true
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        NSPhotoLibraryAddUsageDescription: Save a copy of your downloaded video to Photos when you choose Save to Photos.
+        NSLocalNetworkUsageDescription: Connect to your private download bridge on your home network when you configure one.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    entitlements:
+      path: Configuration/App.entitlements
+      properties:
+        com.apple.security.application-groups: [$(SNAPTOK_APP_GROUP)]
+        keychain-access-groups: [$(AppIdentifierPrefix)$(SNAPTOK_BUNDLE_ID)]
+  SnapTokShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - ShareExtension
+      - path: Configuration/PrivacyInfo.xcprivacy
+        buildPhase: resources
+    dependencies:
+      - package: SnapTokKit
+        product: SnapTokCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(SNAPTOK_BUNDLE_ID).share
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+    info:
+      path: Configuration/Share-Info.plist
+      properties:
+        CFBundleDisplayName: SnapTok
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        SnapTokAppGroup: $(SNAPTOK_APP_GROUP)
+        SnapTokContainingBundle: $(SNAPTOK_BUNDLE_ID)
+        SnapTokKeychainGroup: $(AppIdentifierPrefix)$(SNAPTOK_BUNDLE_ID)
+        NSLocalNetworkUsageDescription: Connect to your private download bridge to save the video you shared.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsText: true
+    entitlements:
+      path: Configuration/Share.entitlements
+      properties:
+        com.apple.security.application-groups: [$(SNAPTOK_APP_GROUP)]
+        keychain-access-groups: [$(AppIdentifierPrefix)$(SNAPTOK_BUNDLE_ID)]
+  SnapTokTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests/SnapTokCoreTests]
+    dependencies:
+      - package: SnapTokKit
+        product: SnapTokCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(SNAPTOK_BUNDLE_ID).tests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  SnapTok:
+    build:
+      targets:
+        SnapTok: all
+    run:
+      config: Debug
+    test:
+      targets: [SnapTokTests]
+    archive:
+      config: Release

@@ -5,6 +5,18 @@ import org.junit.Test
 import java.io.IOException
 
 class FailurePolicyTest {
+    @Test fun rateLimitsAndAccessBlocksDoNotRetryOrSuggestUpdating() {
+        listOf("HTTP Error 429", "anonymous rate-limit reached", "HTTP 403 Forbidden", "captcha required").forEach {
+            val failure = FailurePolicy.classify(IOException(it))
+            assertFalse(failure.retryable)
+            assertFalse(failure.message.contains("updating"))
+        }
+    }
+    @Test fun unsupportedAudioMergeHasClearPermanentFailure() {
+        val failure = FailurePolicy.classify(IllegalStateException("Separate audio track requires merging"))
+        assertFalse(failure.retryable)
+        assertTrue(failure.message.contains("sound"))
+    }
     @Test fun networkRetriesAreBounded() {
         val failure = FailurePolicy.classify(IOException("Connection reset"))
         assertTrue(FailurePolicy.shouldRetry(failure, 0))

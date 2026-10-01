@@ -1,0 +1,4 @@
+// Copy to Local.xcconfig and choose identifiers available to your developer team.
+// DEVELOPMENT_TEAM = YOUR_TEAM_ID
+// SNAPTOK_BUNDLE_ID = your.unique.snaptok
+// SNAPTOK_APP_GROUP = group.your.unique.snaptok
