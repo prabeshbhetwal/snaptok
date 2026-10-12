@@ -42,15 +42,17 @@ class FolderFixtureTest {
         }
         tap("Choose folder")
         assertTrue(device.wait(Until.hasObject(By.pkg("com.android.documentsui")), 10_000))
-        if (device.hasObject(By.text("Documents"))) {
-            tap("Documents")
-            assertTrue(device.wait(Until.hasObject(By.res("com.android.documentsui:id/breadcrumb_text").text("Documents")), 10_000))
-            tap("SnapTokCI")
-        } else {
-            assertTrue("Picker must already be in the isolated folder", device.hasObject(By.text("SnapTokCI")))
+        val selectedFolder = By.res("com.android.documentsui:id/breadcrumb_text").text("SnapTokCI")
+        if (!device.hasObject(selectedFolder)) {
+            device.findObject(By.res("android:id/title").text("Documents"))?.let {
+                it.click()
+                assertTrue(device.wait(Until.hasObject(By.res("com.android.documentsui:id/breadcrumb_text").text("Documents")), 10_000))
+            }
+            (device.wait(Until.findObject(By.res("android:id/title").text("SnapTokCI")), 10_000)
+                ?: error("Isolated folder is missing from the system picker")).click()
         }
         assertTrue("Picker should finish entering the isolated folder before granting it",
-            device.wait(Until.hasObject(By.res("com.android.documentsui:id/breadcrumb_text").text("SnapTokCI")), 10_000))
+            device.wait(Until.hasObject(selectedFolder), 10_000))
         tap("Use this folder")
         tap("Allow")
         val tree = withTimeout(10_000) {
