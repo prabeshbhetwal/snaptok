@@ -44,10 +44,13 @@ class FolderFixtureTest {
         assertTrue(device.wait(Until.hasObject(By.pkg("com.android.documentsui")), 10_000))
         if (device.hasObject(By.text("Documents"))) {
             tap("Documents")
+            assertTrue(device.wait(Until.hasObject(By.res("com.android.documentsui:id/breadcrumb_text").text("Documents")), 10_000))
             tap("SnapTokCI")
         } else {
             assertTrue("Picker must already be in the isolated folder", device.hasObject(By.text("SnapTokCI")))
         }
+        assertTrue("Picker should finish entering the isolated folder before granting it",
+            device.wait(Until.hasObject(By.res("com.android.documentsui:id/breadcrumb_text").text("SnapTokCI")), 10_000))
         tap("Use this folder")
         tap("Allow")
         val tree = withTimeout(10_000) {
