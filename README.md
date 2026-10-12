@@ -4,7 +4,7 @@ Android project lives at the repository root. A separate local iOS implementatio
 
 Android media saver for TikTok and X, with Instagram, YouTube, Facebook and Reddit routes in beta from the Android share sheet. Built for Android 10+; the first target phone is a Samsung Galaxy S24 Ultra.
 
-Android **0.6.2 / build 12** protects new and legacy export receipts and failed-album cleanup, rolls back an export when its receipt cannot be saved, and serialises deletion with publication. Failed exports offer cleanup rather than retrying their original URL. [Build 12 evidence](docs/v0.6.2-build12-validation.md) records packaging and native results; [Android validation](docs/android-ci.md) defines serial unit/lint/assembly and 21 isolated native checks. Physical-device checks remain outstanding; iOS remains paused with known recovery/export gaps. The [12 October readiness record](docs/readiness-2026-10-12.md) preserves the earlier audit and build blockage.
+Android **0.6.2 / build 13** protects new and legacy export receipts and failed-album cleanup, rolls back an export when its receipt cannot be saved, and serialises deletion with publication. Failed exports offer cleanup rather than retrying their original URL. [Build 12 evidence](docs/v0.6.2-build12-validation.md) preserves earlier packaging; final results are recorded in [PR #1](https://github.com/prabeshbhetwal/snaptok/pull/1). [Android validation](docs/android-ci.md) defines serial unit/lint/assembly and 21 isolated native checks. Physical-device checks remain outstanding; iOS remains paused with known recovery/export gaps. The [12 October readiness record](docs/readiness-2026-10-12.md) preserves the earlier audit and build blockage.
 
 ## Version 0.6 — optional current-post capture (Android)
 

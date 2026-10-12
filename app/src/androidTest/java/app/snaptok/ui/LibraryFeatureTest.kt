@@ -56,7 +56,7 @@ class LibraryFeatureTest {
             device.executeShellCommand("input text Library%sfixture")
             device.pressBack(); device.waitForIdle()
             device.findObject(By.desc("Favourite · Library fixture")).click()
-            device.waitForIdle(); assertTrue(container.dao.get(job.id)!!.favourite)
+            kotlinx.coroutines.withTimeout(5000) { while (!container.dao.get(job.id)!!.favourite) kotlinx.coroutines.delay(50) }
             phase = "collection menu"
             reveal("Video actions · Library fixture"); device.findObject(By.desc("Video actions · Library fixture")).click(); tap("Collection…")
             device.findObject(By.desc("Collection name")).click()
