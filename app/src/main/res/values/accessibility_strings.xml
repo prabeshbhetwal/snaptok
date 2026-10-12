@@ -1,0 +1,4 @@
+<resources>
+    <string name="current_post_accessibility_label">SnapTok — Save current post</string>
+    <string name="current_post_accessibility_description">After you tap SnapTok’s floating button, SnapTok reads TikTok’s visible controls and activates Share and Copy link. It briefly opens to read the newly copied link and queue your download. English TikTok only. No screen recording or continuous clipboard monitoring. Enable this optional feature in SnapTok first.</string>
+</resources>

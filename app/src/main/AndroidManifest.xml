@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <application android:name=".SnapTokApplication" android:label="SnapTok"
         android:icon="@drawable/ic_snaptok" android:allowBackup="false" android:fullBackupContent="@xml/backup_rules" android:dataExtractionRules="@xml/data_extraction_rules"
         android:supportsRtl="true" android:theme="@style/Theme.SnapTok"
@@ -22,6 +24,21 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        <activity android:name=".overlay.FloatingControlActivity" android:exported="false" android:excludeFromRecents="true" android:taskAffinity="" android:theme="@style/Theme.SnapTok.Share" />
+        <activity android:name=".overlay.SaveClipboardActivity" android:exported="false"
+            android:excludeFromRecents="true" android:taskAffinity="" android:configChanges="orientation|screenSize"
+            android:theme="@style/Theme.SnapTok.Share" />
+        <service android:name=".overlay.FloatingSaveService" android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-enabled floating media Save button; copied-link mode or separately consented, tap-triggered TikTok Share/Copy automation. Draggable overlay with notification stop control. No continuous clipboard monitoring." />
+        </service>
+        <service android:name=".overlay.CurrentPostAccessibilityService" android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:label="@string/current_post_accessibility_label">
+            <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/current_post_accessibility" />
+        </service>
         <service android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync" tools:node="merge" />
     </application>

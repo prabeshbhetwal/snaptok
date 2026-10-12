@@ -29,7 +29,22 @@ data class DownloadJob(
     @ColumnInfo(defaultValue = "0") val qualityHeight: Int = 0,
     val destinationTreeUri: String? = null,
     @ColumnInfo(defaultValue = "'Gallery · Movies/SnapTok'") val destinationLabel: String = DEFAULT_DESTINATION,
-    @ColumnInfo(defaultValue = "''") val requestKey: String = downloadRequestKey(url, DownloadOptions(qualityHeight, destinationTreeUri, destinationLabel))
+    @ColumnInfo(defaultValue = "''") val requestKey: String = downloadRequestKey(url, DownloadOptions(qualityHeight, destinationTreeUri, destinationLabel)),
+    @ColumnInfo(defaultValue = "0") val unmetered: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val charging: Boolean = false,
+    @ColumnInfo(defaultValue = "1024") val maxSizeMb: Int = 1024,
+    @ColumnInfo(defaultValue = "1") val itemIndex: Int = 1,
+    @ColumnInfo(defaultValue = "0") val audioOnly: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val favourite: Boolean = false,
+    @ColumnInfo(defaultValue = "''") val collection: String = "",
+    @ColumnInfo(defaultValue = "''") val creator: String = "",
+    @ColumnInfo(defaultValue = "''") val caption: String = "",
+    @ColumnInfo(defaultValue = "''") val sourceId: String = "",
+    @ColumnInfo(defaultValue = "'images'") val photoMode: String = "images",
+    @ColumnInfo(defaultValue = "3") val slideSeconds: Int = 3,
+    @ColumnInfo(defaultValue = "1") val slideMusic: Boolean = true,
+    @ColumnInfo(defaultValue = "'[]'") val outputsJson: String = "[]"
+
 )
 
 @Dao
@@ -38,6 +53,19 @@ interface DownloadDao {
     @Query("SELECT * FROM downloads WHERE id = :id") suspend fun get(id: String): DownloadJob?
     @Query("SELECT * FROM downloads WHERE url = :url") suspend fun findUrl(url: String): DownloadJob?
     @Query("SELECT * FROM downloads WHERE requestKey = :key") suspend fun findRequest(key: String): DownloadJob?
+    @Query("DELETE FROM downloads WHERE id = :id AND status IN ('Saved', 'Failed', 'Cancelled') AND (status = 'Saved' OR (mediaUri IS NULL AND outputsJson = '[]'))")
+    suspend fun removeFinished(id: String): Int
+    @Query("SELECT * FROM downloads") suspend fun all(): List<DownloadJob>
+    @Query("UPDATE downloads SET favourite = :value WHERE id = :id") suspend fun favourite(id: String, value: Boolean)
+    @Query("UPDATE downloads SET collection = :value WHERE id = :id") suspend fun collection(id: String, value: String)
+    @Query("UPDATE downloads SET creator = :creator, caption = :caption, sourceId = :sourceId WHERE id = :id")
+    suspend fun metadata(id: String, creator: String, caption: String, sourceId: String)
+    @Query("UPDATE downloads SET outputsJson = :outputs, mediaUri = CASE WHEN status = 'Saved' THEN mediaUri ELSE NULL END WHERE id = :id") suspend fun outputs(id: String, outputs: String)
+    @Query("UPDATE downloads SET status = 'Queued', mediaUri = NULL, progress = 0 WHERE id = :id AND status = 'Saved'") suspend fun missing(id: String): Int
+    @Query("UPDATE downloads SET unmetered = :unmetered, charging = :charging, maxSizeMb = :limit WHERE id = :id AND status IN ('Failed', 'Cancelled', 'Saved')")
+    suspend fun requestOptions(id: String, unmetered: Boolean, charging: Boolean, limit: Int)
+    @Query("UPDATE downloads SET status = 'Queued', error = NULL WHERE id = :id AND status = 'Downloading'")
+    suspend fun interrupted(id: String)
     @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insert(job: DownloadJob): Long
     @Query("SELECT * FROM downloads WHERE status IN ('Queued', 'Downloading', 'Saving', 'Retrying') ORDER BY createdAt")
     suspend fun incomplete(): List<DownloadJob>
@@ -49,6 +77,8 @@ interface DownloadDao {
     suspend fun saving(id: String): Int
     @Query("UPDATE downloads SET status = 'Saved', progress = 100, title = :title, mediaUri = :uri, error = NULL WHERE id = :id")
     suspend fun saved(id: String, title: String, uri: String)
+    @Query("UPDATE downloads SET status = 'Saved', progress = 100, title = :title, mediaUri = :uri, outputsJson = :outputs, destinationLabel = :destination, error = NULL WHERE id = :id AND status = 'Saving'")
+    suspend fun savedOutputs(id: String, title: String, uri: String, outputs: String, destination: String): Int
     @Query("UPDATE downloads SET status = :status, error = :error WHERE id = :id AND status != 'Cancelled'")
     suspend fun failed(id: String, status: String, error: String)
     @Query("UPDATE downloads SET status = 'Cancelled', error = NULL WHERE id = :id AND status IN ('Queued', 'Retrying', 'Downloading')")
@@ -57,7 +87,7 @@ interface DownloadDao {
     suspend fun reset(id: String): Int
 }
 
-@Database(entities = [DownloadJob::class], version = 2, exportSchema = true)
+@Database(entities = [DownloadJob::class], version = 4, exportSchema = true)
 abstract class DownloadDatabase : RoomDatabase() { abstract fun downloads(): DownloadDao }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -69,5 +99,25 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         db.execSQL("UPDATE downloads SET requestKey = url || '|0|'")
         db.execSQL("DROP INDEX index_downloads_url")
         db.execSQL("CREATE UNIQUE INDEX index_downloads_requestKey ON downloads(requestKey)")
+    }
+}
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        listOf("unmetered" to "0", "charging" to "0", "maxSizeMb" to "1024", "itemIndex" to "1", "audioOnly" to "0", "favourite" to "0").forEach { (name, default) ->
+            db.execSQL("ALTER TABLE downloads ADD COLUMN $name INTEGER NOT NULL DEFAULT $default")
+        }
+        listOf("collection", "creator", "caption", "sourceId").forEach {
+            db.execSQL("ALTER TABLE downloads ADD COLUMN $it TEXT NOT NULL DEFAULT ''")
+        }
+    }
+}
+
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE downloads ADD COLUMN photoMode TEXT NOT NULL DEFAULT 'images'")
+        db.execSQL("ALTER TABLE downloads ADD COLUMN slideSeconds INTEGER NOT NULL DEFAULT 3")
+        db.execSQL("ALTER TABLE downloads ADD COLUMN slideMusic INTEGER NOT NULL DEFAULT 1")
+        db.execSQL("ALTER TABLE downloads ADD COLUMN outputsJson TEXT NOT NULL DEFAULT '[]'")
     }
 }

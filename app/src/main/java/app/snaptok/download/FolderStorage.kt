@@ -33,8 +33,8 @@ class FolderStorage(private val context: Context) {
         try {
             labelAndValidate(tree)
             val parent = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
-            val finalName = "SnapTok-${job.id}.mp4"
-            val partialName = ".SnapTok-${job.id}.partial.mp4"
+            val finalName = "SnapTok-${job.id}.${video.extension}"
+            val partialName = ".SnapTok-${job.id}.partial.${video.extension}"
             val expectedHash = video.file.inputStream().use(::hash)
             val existing = children(tree)
             existing.firstOrNull { it.name == finalName }?.let {
@@ -43,7 +43,7 @@ class FolderStorage(private val context: Context) {
                 throw DestinationUnavailableException("A conflicting file already exists in the selected folder. Choose another folder and download again.")
             }
             existing.filter { it.name == partialName }.forEach { DocumentsContract.deleteDocument(resolver, it.uri) }
-            val partial = DocumentsContract.createDocument(resolver, parent, "video/mp4", partialName) ?: unavailable()
+            val partial = DocumentsContract.createDocument(resolver, parent, video.mimeType, partialName) ?: unavailable()
             try {
                 val flags = resolver.query(partial, arrayOf(DocumentsContract.Document.COLUMN_FLAGS), null, null, null)?.use {
                     if (it.moveToFirst()) it.getInt(0) else 0
