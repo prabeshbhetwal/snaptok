@@ -51,7 +51,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val player = MutableStateFlow<DownloadJob?>(null)
     val storage = MutableStateFlow<StorageSummary?>(null)
     val exporting = MutableStateFlow(false)
-    fun openJob(id: String) = viewModelScope.launch { player.value = container.dao.get(id) }
+    fun openJob(id: String) = viewModelScope.launch {
+        val job = container.dao.get(id)
+        if (job?.status == JobStatus.SAVED && job.mediaUri != null) player.value = job
+        else {
+            player.value = null
+            page.value = 1
+            message("Saved file unavailable. Check this download in Library.")
+        }
+    }
     fun closePlayer() { player.value = null }
     fun favourite(job: DownloadJob) = viewModelScope.launch { container.dao.favourite(job.id, !job.favourite) }
     fun collection(job: DownloadJob, name: String) = viewModelScope.launch { container.dao.collection(job.id, name.trim().take(60)) }
@@ -133,11 +141,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun message(text: String) { eventChannel.emit(UiEvent.Message(text)) }
     fun notify(text: String) { viewModelScope.launch { message(text) } }
 
-    fun enqueue(text: String, qualityHeight: Int) = viewModelScope.launch {
+    fun enqueue(text: String, qualityHeight: Int) = enqueue(text, preferences.value.options.copy(qualityHeight = qualityHeight))
+    private fun enqueue(text: String, options: DownloadOptions) = viewModelScope.launch {
         if (busy.value) return@launch
         busy.value = true
         try {
-            val result = container.queue.enqueue(text, preferences.value.options.copy(qualityHeight = qualityHeight))
+            val result = container.queue.enqueue(text, options)
             accepted(text)
             message(result)
         } catch (e: CancellationException) { throw e }
@@ -196,7 +205,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun retryInCurrentFolder(job: DownloadJob) = if (job.requestKey.startsWith("export:")) {
         viewModelScope.launch { message("Export again from the original file.") }
-    } else enqueue(job.url, job.qualityHeight)
+    } else enqueue(job.url, container.preferences.optionsFor(job.url).copy(itemIndex = job.itemIndex, audioOnly = job.audioOnly))
     fun updateEngine() = viewModelScope.launch {
         if (updating.value) return@launch
         updating.value = true

@@ -13,7 +13,7 @@ android {
         applicationId = "app.snaptok"
         minSdk = 29
         targetSdk = 35
-        versionCode = 13
+        versionCode = 14
         versionName = "0.6.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }
