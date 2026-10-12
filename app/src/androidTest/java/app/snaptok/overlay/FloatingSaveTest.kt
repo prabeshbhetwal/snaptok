@@ -49,7 +49,8 @@ class FloatingSaveTest {
     private fun tapAndWaitForReturn() {
         val finished = CountDownLatch(1)
         val callback = ActivityLifecycleCallback { activity, stage ->
-            if (activity is SaveClipboardActivity && stage == Stage.DESTROYED) finished.countDown()
+            if (activity is SaveClipboardActivity && (stage == Stage.DESTROYED ||
+                (activity.isFinishing && stage in listOf(Stage.PAUSED, Stage.STOPPED)))) finished.countDown()
         }
         val monitor = ActivityLifecycleMonitorRegistry.getInstance()
         instrumentation.runOnMainSync { monitor.addLifecycleCallback(callback) }
