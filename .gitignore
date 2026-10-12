@@ -5,6 +5,7 @@
 local.properties
 **/build/
 work/
+outputs/
 *.jks
 *.keystore
 .DS_Store

@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
+import app.snaptok.BuildConfig
 import app.snaptok.core.VideoQuality
 import app.snaptok.data.DownloadSettings
 
@@ -18,6 +19,8 @@ fun LazyListScope.settingsItems(model: MainViewModel, settings: DownloadSettings
         Spacer(Modifier.height(8.dp))
         Text("Your defaults keep sharing quick.", color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
+    item { app.snaptok.overlay.FloatingSaveSettings() }
+    advancedSettingsItems(model, settings)
     item {
         SettingCard("Save location") {
             Text(settings.options.destinationLabel)
@@ -54,16 +57,16 @@ fun LazyListScope.settingsItems(model: MainViewModel, settings: DownloadSettings
     item {
         SettingCard("Download engine") {
             Text(engine, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("Videos download directly on your phone using yt-dlp. SnapTik's website is not involved. Update if a source changes and downloads stop working.", style = MaterialTheme.typography.bodyMedium)
+            Text("Keep download support up to date when a supported platform changes. Videos are saved directly on your phone.", style = MaterialTheme.typography.bodyMedium)
             OutlinedButton(onClick = { model.updateEngine() }, enabled = !updating) { Text(if (updating) "Waiting / updating…" else "Update engine") }
             if (updating) Text("Keep SnapTok open. Any current download finishes first.", style = MaterialTheme.typography.bodySmall)
         }
     }
     item { SettingCard("Privacy & supported links") {
-        Text("Public TikTok and X/Twitter video posts. No account, adverts, analytics or automatic clipboard reading. Paste reads the clipboard only when you tap it. Videos download from their source; engine updates contact GitHub.", style = MaterialTheme.typography.bodyMedium)
-        Text("Private posts, login-required content, slideshows and live streams are not supported. For X posts with multiple videos, share the specific /video/2 link or the first video is saved.", style = MaterialTheme.typography.bodySmall)
+        Text("TikTok and X video posts. Instagram, YouTube, Facebook and Reddit support is beta. No account, adverts, analytics or automatic clipboard reading. The clipboard is read only when you tap Paste or the floating Save button. Videos download from their source; engine updates contact GitHub.", style = MaterialTheme.typography.bodyMedium)
+        Text("TikTok photo posts can be saved as images, a slideshow or both. Choose the default in Photo posts. Private posts, login-required content, Stories and live streams are not supported. Instagram may limit public access; no account login is used. Shared multi-video posts save the first video. Use Check post on the Save screen to choose several. For X posts with multiple videos, share the link to the video you want. Otherwise, the first video is saved.", style = MaterialTheme.typography.bodySmall)
     } }
-    item { Text("SnapTok 0.2.0 · Personal preview", style = MaterialTheme.typography.labelMedium) }
+    item { Text("SnapTok ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelMedium) }
 }
 
 @Composable

@@ -30,7 +30,8 @@ class DownloadNotifications(private val context: Context, private val preference
     }
     private fun id(jobId: String) = (jobId.hashCode() and 0x3fffffff) + 1
     private fun openApp(): PendingIntent = PendingIntent.getActivity(context, 0,
-        Intent(context, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        Intent(context, MainActivity::class.java).putExtra("showLibrary", true)
+            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
     private fun progressNotification(jobId: String, percent: Int, saving: Boolean = false): Notification {
         val settings = preferences.snapshot()
@@ -41,6 +42,7 @@ class DownloadNotifications(private val context: Context, private val preference
                 !detailed -> "Download running in the background"
                 saving -> "Finishing and verifying your saved file…"
                 percent < 0 -> "Preparing your download…"
+                percent >= 100 -> "Finishing media…"
                 else -> "Downloading · $percent%"
             })
             .setContentIntent(openApp()).setOngoing(true).setOnlyAlertOnce(true).setSilent(true)
@@ -63,10 +65,10 @@ class DownloadNotifications(private val context: Context, private val preference
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         manager.notify("completed-$jobId", 0, NotificationCompat.Builder(context, "completed")
-            .setSmallIcon(R.drawable.ic_download).setContentTitle("Video downloaded")
+            .setSmallIcon(R.drawable.ic_download).setContentTitle("Download complete")
             .setContentText(title).setStyle(NotificationCompat.BigTextStyle().bigText("$title\nSaved to $destination"))
-            .setContentIntent(play).addAction(0, "Play video", play).setAutoCancel(true).build())
-        briefMessage("Video downloaded")
+            .setContentIntent(play).addAction(0, "Open", play).setAutoCancel(true).build())
+        briefMessage("Download complete")
     }
     fun failed(jobId: String, message: String) {
         val settings = preferences.snapshot()
