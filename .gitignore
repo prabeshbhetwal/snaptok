@@ -10,3 +10,4 @@ outputs/
 *.keystore
 .DS_Store
 graphify-out/
+.codegraph/
