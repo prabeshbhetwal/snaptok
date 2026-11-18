@@ -105,7 +105,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (busy.value) return@launch
         busy.value = true
         try {
-            val links = if (batch) parseBatch(text) else listOf(VideoLink.parse(text))
+            val batchLinks = if (batch) parseBatch(text) else null
+            val links = batchLinks?.links ?: listOf(VideoLink.parse(text))
             val chosen = if (batch) setOf(1) else indices.ifEmpty { setOf(1) }
             var count = 0; var last = ""
             for (link in links) for (index in chosen.sorted()) {
@@ -119,7 +120,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             accepted(text)
-            message(if (count == 1) last else "$count links processed. Existing saves were kept.")
+            val skipped = batchLinks?.skipped ?: 0
+            message((if (count == 1) last else "$count links processed. Existing saves were kept.") + if (skipped > 0) " $skipped unsupported link${if (skipped == 1) "" else "s"} skipped." else "")
         } catch (e: CancellationException) { throw e }
         catch (e: Exception) { message(e.message ?: "Could not queue these links") }
         finally { busy.value = false }

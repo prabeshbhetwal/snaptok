@@ -6,8 +6,8 @@ data class VideoLink(val url: String) {
     companion object {
         private val hosts = setOf("tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com")
         private val instagramHosts = setOf("instagram.com", "www.instagram.com", "m.instagram.com")
-        private val instagramPost = Regex("/(?:reel|reels|p)/([A-Za-z0-9_-]+)/?")
-        private val extraHosts = setOf("youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "facebook.com", "www.facebook.com", "m.facebook.com", "fb.watch", "reddit.com", "www.reddit.com", "old.reddit.com", "v.redd.it")
+        private val instagramPost = Regex("/(?:[A-Za-z0-9._]+/)?(?:reel|reels|p|tv)/([A-Za-z0-9_-]+)/?")
+        private val extraHosts = setOf("youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "music.youtube.com", "facebook.com", "www.facebook.com", "m.facebook.com", "web.facebook.com", "fb.watch", "reddit.com", "www.reddit.com", "old.reddit.com", "v.redd.it", "redd.it")
         private val xHosts = setOf("x.com", "www.x.com", "mobile.x.com", "twitter.com", "www.twitter.com", "mobile.twitter.com")
         private val xPost = Regex("/(?:[A-Za-z0-9_]+/status|i/status|i/web/status)/([0-9]{6,})(?:/video/([1-9][0-9]*))?/?")
         private val urlPattern = Regex("https?://[^\\s<>\"]+", RegexOption.IGNORE_CASE)
@@ -27,18 +27,20 @@ data class VideoLink(val url: String) {
                     val query = uri.rawQuery.orEmpty().split('&').map { it.split('=', limit = 2) }.filter { it.size == 2 }.associate { it[0] to it[1] }
                     when {
                         host.contains("youtube.com") || host == "youtu.be" -> {
-                            val id = if (host == "youtu.be") path.trim('/') else if (path == "/watch") query["v"].orEmpty() else Regex("/(?:shorts|embed)/([A-Za-z0-9_-]{11})/?").matchEntire(path)?.groupValues?.get(1).orEmpty()
+                            val id = if (host == "youtu.be") path.trim('/') else if (path == "/watch") query["v"].orEmpty() else Regex("/(?:shorts|embed|live)/([A-Za-z0-9_-]{11})/?").matchEntire(path)?.groupValues?.get(1).orEmpty()
                             if (Regex("[A-Za-z0-9_-]{11}").matches(id)) return@mapNotNull VideoLink("https://www.youtube.com/watch?v=$id")
                         }
                         host.contains("facebook.com") -> {
                             if (path.trimEnd('/') in listOf("/watch", "/video.php") && query["v"]?.matches(Regex("[0-9]+")) == true) return@mapNotNull VideoLink("https://www.facebook.com/watch/?v=${query["v"]}")
-                            if (Regex("/(?:reel/[0-9]+|[^/]+/videos/[0-9]+|share/[vr]/[A-Za-z0-9]+)/?").matches(path)) return@mapNotNull VideoLink("https://www.facebook.com${path.trimEnd('/')}/")
+                            if (Regex("/(?:reel/[0-9]+|[^/]+/videos/(?:[^/]+/)?[0-9]+|share/[vr]/[A-Za-z0-9]+)/?").matches(path)) return@mapNotNull VideoLink("https://www.facebook.com${path.trimEnd('/')}/")
                         }
                         host == "fb.watch" && Regex("/[A-Za-z0-9_-]+/?").matches(path) -> return@mapNotNull VideoLink("https://fb.watch${path.trimEnd('/')}/")
+                        host == "redd.it" && Regex("/[a-z0-9]+/?").matches(path) -> return@mapNotNull VideoLink("https://www.reddit.com/comments/${path.trim('/')}/")
                         host == "v.redd.it" && Regex("/[a-z0-9]+/?").matches(path) -> return@mapNotNull VideoLink("https://v.redd.it/${path.trim('/')}")
                         host.endsWith("reddit.com") -> {
                             val id = Regex("/(?:(?:r|user)/[^/]+/)?comments/([a-z0-9]+)(?:/[^/]*)?/?").matchEntire(path)?.groupValues?.get(1)
                             if (id != null) return@mapNotNull VideoLink("https://www.reddit.com/comments/$id/")
+                            if (Regex("/r/[A-Za-z0-9_]+/s/[A-Za-z0-9]+/?").matches(path)) return@mapNotNull VideoLink("https://www.reddit.com${path.trimEnd('/')}/")
                         }
                     }
                     return@mapNotNull null
@@ -52,6 +54,7 @@ data class VideoLink(val url: String) {
                     val suffix = matchPost.groupValues[2].takeIf { it.isNotEmpty() }?.let { "/video/$it" }.orEmpty()
                     return@mapNotNull VideoLink("https://x.com/i/status/${matchPost.groupValues[1]}$suffix")
                 }
+                Regex("/v/([0-9]{6,})\\.html").matchEntire(path)?.let { if (host == "m.tiktok.com") return@mapNotNull VideoLink("https://www.tiktok.com/@_/video/${it.groupValues[1]}") }
                 val isShortHost = host == "vm.tiktok.com" || host == "vt.tiktok.com"
                 when {
                     isShortHost && short.matches(path) -> VideoLink("https://$host/${path.trim('/')}/")
@@ -75,9 +78,13 @@ fun videoPlatform(url: String): String = when (runCatching { URI(url).host }.get
     else -> "TikTok"
 }
 
-fun parseBatch(text: String): List<VideoLink> {
+class BatchLinks(val links: List<VideoLink>, val skipped: Int)
+
+/** Good links are kept; unsupported ones are counted so one typo cannot sink the batch. */
+fun parseBatch(text: String): BatchLinks {
     require(text.length <= 100_000) { "Batch is too large. Add up to 50 links." }
-    val links = Regex("https?://[^\\s<>\"]+", RegexOption.IGNORE_CASE).findAll(text).map { VideoLink.parse(it.value) }.distinct().toList()
+    val parsed = Regex("https?://[^\\s<>\"]+", RegexOption.IGNORE_CASE).findAll(text).map { runCatching { VideoLink.parse(it.value) }.getOrNull() }.toList()
+    val links = parsed.filterNotNull().distinct()
     require(links.isNotEmpty() && links.size <= 50) { "Add between 1 and 50 supported video links." }
-    return links
+    return BatchLinks(links, parsed.count { it == null })
 }

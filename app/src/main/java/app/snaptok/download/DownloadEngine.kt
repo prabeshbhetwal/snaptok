@@ -55,6 +55,7 @@ class YtDlpEngine(private val context: Context) : DownloadEngine {
                 } else {
                     addOption("-f", VideoQuality.selector(job.qualityHeight))
                     addOption("--merge-output-format", "mp4")
+                    addOption("--remux-video", "mp4")
                 }
                 val quickjs = File(context.applicationInfo.nativeLibraryDir, "libqjs.so")
                 if (quickjs.isFile) addOption("--js-runtimes", "quickjs:${quickjs.absolutePath}")

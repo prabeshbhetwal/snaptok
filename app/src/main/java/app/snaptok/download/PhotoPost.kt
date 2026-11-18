@@ -65,7 +65,11 @@ class PhotoDownloader(private val context: Context) {
         if (host != "tiktok.com" && !host.endsWith(".tiktok.com")) return null
         var canonical = job.url
         if (host in listOf("vt.tiktok.com", "vm.tiktok.com") || URI(job.url).path.startsWith("/t/")) {
-            canonical = runInterruptible(Dispatchers.IO) { connection(job.url, page = true).let { connection -> try { connection.url.toString() } finally { connection.disconnect() } } }
+            // A failed pre-check must not block video extraction: treat the link as "not a photo" and let yt-dlp try it.
+            canonical = try {
+                runInterruptible(Dispatchers.IO) { connection(job.url, page = true).let { connection -> try { connection.url.toString() } finally { connection.disconnect() } } }
+            } catch (error: java.io.InterruptedIOException) { throw error }
+            catch (_: IOException) { return null }
         }
         val photoPath = Regex("/@[^/]+/photo/([0-9]{6,})/?").matchEntire(URI(canonical).path) ?: return null
         if (job.audioOnly) throw PhotoPostException("This is a photo post. Turn off Audio only and choose Images or Slideshow.")
