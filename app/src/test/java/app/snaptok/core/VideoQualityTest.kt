@@ -19,7 +19,7 @@ class VideoQualityTest {
     }
     @Test fun supportsSourcesThatAreActuallySilent() {
         assertEquals(listOf(480), VideoQuality.heights(listOf(VideoFormat("mp4", 480, true, false))))
-        assertTrue(VideoQuality.selector(480).endsWith("/bestvideo[ext=mp4]"))
+        assertTrue(VideoQuality.selector(480).endsWith("/bestvideo[ext=mp4]/bv*+ba/b"))
     }
     @Test fun unknownCodecMetadataOnXDoesNotHideValidMp4Qualities() {
         val direct = VideoQuality.format("mp4", 720, 720, null, null)

@@ -6,7 +6,7 @@ object VideoQuality {
     fun label(height: Int) = if (height == 0) "Best available" else "${height}p"
     fun selector(height: Int): String {
         require(height == 0 || height in 1..4320) { "Unsupported quality preference" }
-        return "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo[ext=mp4]+bestaudio/bestvideo[ext=mp4]"
+        return "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo[ext=mp4]+bestaudio/bestvideo[ext=mp4]/bv*+ba/b"
     }
     fun sort(height: Int): String? = if (height == 0) null else "res:$height"
     fun format(extension: String, height: Int, width: Int, videoCodec: String?, audioCodec: String?) =

@@ -1,34 +1,21 @@
 # SnapTok
 
-Android project lives at the repository root. A separate local iOS implementation remains paused and is outside this Android source update. The [photo-post validation record](docs/v0.5-photo-posts.md) records historical Android and iOS checks; physical iPhone testing remains outstanding.
+## About
 
-Android media saver for TikTok and X, with Instagram, YouTube, Facebook and Reddit routes in beta from the Android share sheet. Built for Android 10+; the first target phone is a Samsung Galaxy S24 Ultra.
+SnapTok is an Android app that saves videos and photo posts from TikTok and X to your phone's gallery. Share a post to SnapTok from the Android share sheet, or paste a link into the app, and the download runs on the device using bundled yt-dlp and FFmpeg. Instagram, YouTube, Facebook and Reddit routes are in beta. There is no account, backend, analytics or advertising.
 
-Android **0.6.2 / build 14** protects new and legacy export receipts and failed-album cleanup, rolls back an export when its receipt cannot be saved, and serialises deletion with publication. Failed exports offer cleanup rather than retrying their original URL. Stale completion notifications return to Library when the saved row is no longer playable; retry with current defaults preserves the selected item and audio choice. [Build 12 evidence](docs/v0.6.2-build12-validation.md) preserves earlier packaging; final results are recorded in [PR #1](https://github.com/prabeshbhetwal/snaptok/pull/1). [Android validation](docs/android-ci.md) defines serial unit/lint/assembly and 22 isolated native checks. Physical-device checks remain outstanding; iOS remains paused with known recovery/export gaps. The [12 October readiness record](docs/readiness-2026-10-12.md) preserves the earlier audit and build blockage.
+Built for Android 10+. The first target phone is a Samsung Galaxy S24 Ultra.
 
-## Version 0.6 — optional current-post capture (Android)
+## Features
 
-Version **0.6.1** fixes recognition of TikTok's counted Share label (for example, **Share video 25K shares**). One-tap capture and completed downloading were verified on the S24 Ultra with TikTok 47.1.4. See [the on-device fix report](docs/v0.6.1-capture-fix.md).
+- Save from the Android share sheet or from manual input, including batches of up to 50 links.
+- Save TikTok photo posts as Images, a Slideshow, or Both, with optional music.
+- Optional Floating Save button that reads a copied link without Accessibility access.
+- Library with search, favourites, collections, list/grid views and an integrated player.
+- Media tools that export trimmed or audio-only copies without changing originals.
+- Quality, folder, notification and size preferences, with storage reporting and cleanup.
 
-Floating Save now offers **Save current post · TikTok**. After separate consent and Android Accessibility setup, a tap runs a fixed English Share → Copy link sequence, validates a fresh TikTok link and uses the existing download queue. The share panel may appear briefly. No guessed screen coordinates, continuous monitoring or stale-clipboard fallback. This experimental adapter needs validation against the user's installed TikTok version; synthetic tests cannot establish live compatibility. See [setup and verification](docs/v0.6-current-post.md). iOS work is paused.
-
-## Version 0.5 — photo posts
-
-Public TikTok photo posts can be saved as **Images**, **Slideshow** or **Both**. Settings remembers the default for Share and Floating Save; manual input can override it. Originals retain their source bytes and order. Slideshows fit each image without cropping, with 2–10 seconds per image and optional music repeated to match the duration. Missing requested music produces an actionable failure rather than a silently muted video.
-
-Albums support browsing and sharing all images. Default destinations are Pictures/SnapTok for images and Movies/SnapTok for slideshows; custom folders support both. Saved status is committed only after every requested file is published. See [feature details and validation](docs/v0.5-photo-posts.md).
-
-## Existing features
-
-Save, Library and Settings have dedicated navigation, coordinated system/light/dark themes and reduced-motion support. The library adds favourites, collections, list/grid views, sorting, captions and an integrated player with speed/resume controls. Media tools export trimmed or audio-only copies without changing originals.
-
-The downloader now bundles FFmpeg for separate video/audio merging. It supports audio-only output, multi-video selection, batches up to 50 links, per-platform quality/folder presets, unmetered/charging constraints and file-size limits. Metadata aliases reuse a saved file when possible; missing files can be downloaded again. New requests after failures can use updated constraints; ordinary Retry retains the job's original options.
-
-Storage settings report accessible saved bytes, temporary files and free phone storage. Cleanup excludes active jobs. Confirmed file deletion is separate from removing history. The floating button adds progress/count/result feedback, optional fading/haptics, an action menu and a restore notification.
-
-See [v0.4 changes](docs/v0.4-changes.md) and [validation](docs/v0.4-validation.md). New platform routes remain beta; accepting a URL is not proof every post can be extracted.
-
-## Everyday use
+## How to use
 
 1. Install the v0.6.2 ARM64 preview APK over the existing personal build; do not uninstall. The signer matches v0.6.1, retaining the existing app's data on upgrade.
 2. Open Settings to choose a default quality, destination folder and notification preferences. Android notification permission is also required for system alerts.
@@ -42,8 +29,6 @@ The default destinations are **Movies/SnapTok** and **Pictures/SnapTok** in the 
 The APK bundles verified yt-dlp 2026.08.19. If video extraction breaks, use **Settings > Update engine** and keep the app open while it updates. TikTok photo extraction is bundled app code and requires an app update if its source format changes. Public posts only: no account/login support, private posts or live streams. Photo support currently targets TikTok `/photo/` posts and their official short links. X multi-video posts select the explicit `/video/2` suffix when supplied, otherwise the first video. Generic `t.co` links are not accepted.
 
 Quality preferences never upscale. The source's best available supported MP4 at or below the preferred resolution is selected, falling back to the smallest available if necessary. FFmpeg combines separate video/audio streams when available. If the source reports audio but the result has none, the job fails rather than silently dropping sound. Silent files are labelled No audio track. A watermarked copy is accepted when that is what the source provides.
-
-See [v0.4 changes](docs/v0.4-changes.md) for the folder and notification behaviour, and the versioned validation report for test coverage.
 
 ## Floating Save
 
@@ -73,14 +58,38 @@ S24 Ultra APK: `app/build/outputs/apk/preview/app-arm64-v8a-preview.apk`. A univ
 
 Both entry points use the same queue. Tracking parameters are removed from ordinary post URLs. Identical URL/quality/destination requests are deduplicated; choosing another quality or folder permits another copy. Different short-link aliases may still produce duplicate saves because canonical video identity is not known at enqueue time. Retry is manual for failed/cancelled jobs and automatic up to three attempts for temporary errors. Force-stop and manufacturer power restrictions can delay work; reopen SnapTok to reconcile incomplete jobs.
 
-The share target acknowledges **queued**, not **saved**. Only a validated, published gallery file receives Saved status. Progress is quiet. Completion/failure alerts and brief messages are configurable and require notification permission. Android’s required foreground-service indicator remains even when optional alerts are disabled; history remains available.
+The share target acknowledges **queued**, not **saved**. Only a validated, published gallery file receives Saved status. Progress is quiet. Completion/failure alerts and brief messages are configurable and require notification permission. Android's required foreground-service indicator remains even when optional alerts are disabled; history remains available.
 
 ## Privacy
 
 No analytics, account, adverts, clipboard monitoring or backend. Links, staging files and job history stay on-device. Extraction contacts the supported platforms and their media hosts. If you choose a cloud folder provider, that provider receives the saved file. Explicit engine updates contact GitHub. Android backup is disabled. Uninstalling removes private app data; published gallery videos remain.
 
-## Development and release notes
+Incomplete transfers use app-private cache so retries can reuse partial data. Android may reclaim cache; a retry then downloads the file again. Clearing Android app cache removes these temporary files without removing gallery videos.
+
+## Release status
+
+A separate local iOS implementation remains paused and is outside this Android source update. The [photo-post validation record](docs/v0.5-photo-posts.md) records historical Android and iOS checks; physical iPhone testing remains outstanding.
+
+**Android 0.6.2 / build 14** protects new and legacy export receipts and failed-album cleanup, rolls back an export when its receipt cannot be saved, and serialises deletion with publication. Failed exports offer cleanup rather than retrying their original URL. Stale completion notifications return to Library when the saved row is no longer playable; retry with current defaults preserves the selected item and audio choice. [Build 12 evidence](docs/v0.6.2-build12-validation.md) preserves earlier packaging; final results are recorded in [PR #1](https://github.com/prabeshbhetwal/snaptok/pull/1). [Android validation](docs/android-ci.md) defines serial unit/lint/assembly and 22 isolated native checks. Physical-device checks remain outstanding; iOS remains paused with known recovery/export gaps. The [12 October readiness record](docs/readiness-2026-10-12.md) preserves the earlier audit and build blockage.
+
+**Version 0.6.1** fixes recognition of TikTok's counted Share label (for example, **Share video 25K shares**). One-tap capture and completed downloading were verified on the S24 Ultra with TikTok 47.1.4. See [the on-device fix report](docs/v0.6.1-capture-fix.md).
+
+**Version 0.6: optional current-post capture (Android).** Floating Save now offers **Save current post · TikTok**. After separate consent and Android Accessibility setup, a tap runs a fixed English Share → Copy link sequence, validates a fresh TikTok link and uses the existing download queue. The share panel may appear briefly. No guessed screen coordinates, continuous monitoring or stale-clipboard fallback. This experimental adapter needs validation against the user's installed TikTok version; synthetic tests cannot establish live compatibility. See [setup and verification](docs/v0.6-current-post.md). iOS work is paused.
+
+**Version 0.5: photo posts.** Public TikTok photo posts can be saved as **Images**, **Slideshow** or **Both**. Settings remembers the default for Share and Floating Save; manual input can override it. Originals retain their source bytes and order. Slideshows fit each image without cropping, with 2–10 seconds per image and optional music repeated to match the duration. Missing requested music produces an actionable failure rather than a silently muted video.
+
+Albums support browsing and sharing all images. Default destinations are Pictures/SnapTok for images and Movies/SnapTok for slideshows; custom folders support both. Saved status is committed only after every requested file is published. See [feature details and validation](docs/v0.5-photo-posts.md).
+
+**Version 0.4 and earlier.** Save, Library and Settings have dedicated navigation, coordinated system/light/dark themes and reduced-motion support. The library adds favourites, collections, list/grid views, sorting, captions and an integrated player with speed/resume controls. Media tools export trimmed or audio-only copies without changing originals.
+
+The downloader now bundles FFmpeg for separate video/audio merging. It supports audio-only output, multi-video selection, batches up to 50 links, per-platform quality/folder presets, unmetered/charging constraints and file-size limits. Metadata aliases reuse a saved file when possible; missing files can be downloaded again. New requests after failures can use updated constraints; ordinary Retry retains the job's original options.
+
+Storage settings report accessible saved bytes, temporary files and free phone storage. Cleanup excludes active jobs. Confirmed file deletion is separate from removing history. The floating button adds progress/count/result feedback, optional fading/haptics, an action menu and a restore notification.
+
+See [v0.4 changes](docs/v0.4-changes.md) and [validation](docs/v0.4-validation.md). New platform routes remain beta; accepting a URL is not proof every post can be extracted.
+
+See [v0.4 changes](docs/v0.4-changes.md) for the folder and notification behaviour, and the versioned validation report for test coverage.
+
+## Documentation and licence
 
 Read `docs/design.md`, `docs/implementation-plan.md`, `docs/device-test-plan.md` and `THIRD_PARTY_NOTICES.md`. The extractor library is GPL-3.0; distribution needs licence and corresponding-source compliance. No release signing, store upload, production policy approval or universal extraction guarantee is included. Target SDK and native-library 16 KB compatibility need review before public release.
-
-Incomplete transfers use app-private cache so retries can reuse partial data. Android may reclaim cache; a retry then downloads the file again. Clearing Android app cache removes these temporary files without removing gallery videos.

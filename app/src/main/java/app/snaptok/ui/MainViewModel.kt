@@ -24,6 +24,7 @@ import java.io.File
 import java.util.UUID
 import app.snaptok.download.*
 import app.snaptok.core.parseBatch
+import app.snaptok.core.skippedNote
 
 sealed interface UiEvent {
     data class Message(val text: String, val openJobId: String? = null) : UiEvent
@@ -105,8 +106,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (busy.value) return@launch
         busy.value = true
         try {
-            val links = if (batch) parseBatch(text) else listOf(VideoLink.parse(text))
+            val batchLinks = if (batch) parseBatch(text) else null
+            val links = batchLinks?.links ?: listOf(VideoLink.parse(text))
             val chosen = if (batch) setOf(1) else indices.ifEmpty { setOf(1) }
+            val note = batchLinks?.skippedNote().orEmpty()
             var count = 0; var last = ""
             for (link in links) for (index in chosen.sorted()) {
                 val options = container.preferences.optionsFor(link.url).copy(qualityHeight = quality, itemIndex = index, audioOnly = audio)
@@ -114,12 +117,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (links.size == 1 && chosen.size == 1 && last == "Already saved") {
                     val existing = container.dao.findRequest(downloadRequestKey(link.url, options))
                     accepted(text)
-                    eventChannel.emit(UiEvent.Message("Already saved", existing?.id))
+                    eventChannel.emit(UiEvent.Message("Already saved$note", existing?.id))
                     return@launch
                 }
             }
             accepted(text)
-            message(if (count == 1) last else "$count links processed. Existing saves were kept.")
+            message((if (count == 1) last else "$count links processed. Existing saves were kept.") + note)
         } catch (e: CancellationException) { throw e }
         catch (e: Exception) { message(e.message ?: "Could not queue these links") }
         finally { busy.value = false }

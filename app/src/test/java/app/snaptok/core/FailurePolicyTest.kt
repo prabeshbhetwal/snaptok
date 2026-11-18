@@ -12,6 +12,13 @@ class FailurePolicyTest {
             assertFalse(failure.message.contains("updating"))
         }
     }
+    @Test fun statusDigitsInsidePostIdsDoNotLookLikeBlocks() {
+        listOf("ERROR: [TikTok] 7312403555123456789: Connection reset", "ERROR: [TikTok] 7312429555123456789: Unable to download webpage").forEach {
+            assertTrue(it, FailurePolicy.classify(IOException(it)).retryable)
+        }
+        assertFalse(FailurePolicy.classify(IOException("ERROR: [TikTok] 123: HTTP Error 403: Forbidden")).retryable)
+        assertFalse(FailurePolicy.classify(IOException("ERROR: [TikTok] 123: HTTP Error 429: Too Many Requests")).retryable)
+    }
     @Test fun unsupportedAudioMergeHasClearPermanentFailure() {
         val failure = FailurePolicy.classify(IllegalStateException("Separate audio track requires merging"))
         assertFalse(failure.retryable)
