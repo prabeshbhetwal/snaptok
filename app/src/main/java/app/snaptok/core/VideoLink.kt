@@ -80,6 +80,8 @@ fun videoPlatform(url: String): String = when (runCatching { URI(url).host }.get
 
 class BatchLinks(val links: List<VideoLink>, val skipped: Int)
 
+fun BatchLinks.skippedNote() = if (skipped > 0) " $skipped unsupported link${if (skipped == 1) "" else "s"} skipped." else ""
+
 /** Good links are kept; unsupported ones are counted so one typo cannot sink the batch. */
 fun parseBatch(text: String): BatchLinks {
     require(text.length <= 100_000) { "Batch is too large. Add up to 50 links." }

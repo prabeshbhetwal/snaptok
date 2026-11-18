@@ -22,6 +22,8 @@ class PlatformLinksTest {
         val result = parseBatch("https://youtu.be/BaW_jenozKc\nhttps://example.com/nope\nhttps://youtube.com/@user")
         assertEquals(1,result.links.size)
         assertEquals(2,result.skipped)
+        assertEquals(" 2 unsupported links skipped.",result.skippedNote())
+        assertEquals("",parseBatch("https://youtu.be/BaW_jenozKc").skippedNote())
     }
     @Test fun acceptsCommonShareShapes() {
         assertEquals("https://www.instagram.com/p/AbC_123/",VideoLink.parse("https://www.instagram.com/someuser/reel/AbC_123/").url)
