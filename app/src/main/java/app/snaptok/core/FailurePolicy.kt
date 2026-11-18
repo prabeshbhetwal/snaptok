@@ -6,10 +6,11 @@ object FailurePolicy {
     const val MAX_ATTEMPTS = 3
     /** Match only real HTTP status text; bare digits also occur inside 19-digit post IDs. */
     private fun hasHttpStatus(text: String, code: Int) = Regex("\\bhttp(?: error)?:? ?$code\\b").containsMatchIn(text)
-    fun classify(error: Throwable): DownloadFailure {
+    fun classify(error: Throwable, engineStale: Boolean = false): DownloadFailure {
         val text = error.message.orEmpty().lowercase()
         return when {
             error is app.snaptok.download.PhotoPostException -> DownloadFailure(error.message ?: "This photo post could not be saved.", false)
+            "live streams are not supported" in text -> DownloadFailure("Live streams cannot be saved. Try again after the stream has ended.", false)
             "no downloadable media returned" in text -> DownloadFailure("No supported media was returned. The post may be live, unavailable or above the file size limit.", false)
             "size limit" in text -> DownloadFailure("The media exceeds your file size limit. Increase the limit in Settings, then choose Retry with current defaults from the video menu.", false)
             "audio verification" in text -> DownloadFailure("The source audio could not be saved correctly. Try another format or update download support.", false)
@@ -31,7 +32,8 @@ object FailurePolicy {
             ("video is private" in text || "private video" in text || "private account" in text) || "login required" in text || "log in" in text || "not available" in text || "unavailable" in text || "removed" in text ->
                 DownloadFailure("This video is private, removed or unavailable. Open the original post to check availability.", false)
             "extract" in text || "webpage" in text ->
-                DownloadFailure("The source could not provide the video. Try updating the download engine in SnapTok, then retry.", true)
+                DownloadFailure("The source could not provide the video. Try updating the download engine in SnapTok, then retry." +
+                    if (engineStale) " The engine is more than ${DownloadDiagnostics.STALE_DAYS} days old, so an update is likely to help." else "", true)
             else -> DownloadFailure("The download was interrupted. Check your connection and retry.", true)
         }
     }

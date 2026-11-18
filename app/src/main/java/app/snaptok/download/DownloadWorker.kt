@@ -110,7 +110,7 @@ class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWork
             withContext(NonCancellable) { dao.interrupted(jobId) }
             throw error
         } catch (error: Exception) {
-            val failure = if (error is PublicationCleanupException) DownloadFailure(error.message!!, false) else FailurePolicy.classify(error)
+            val failure = if (error is PublicationCleanupException) DownloadFailure(error.message!!, false) else FailurePolicy.classify(error, engine.isStale())
             val retry = FailurePolicy.shouldRetry(failure, runAttemptCount)
             dao.failed(jobId, if (retry) JobStatus.RETRYING else JobStatus.FAILED, failure.message)
             if (retry) Result.retry() else {

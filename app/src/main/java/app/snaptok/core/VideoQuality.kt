@@ -4,8 +4,8 @@ package app.snaptok.core
 object VideoQuality {
     val defaults = listOf(0, 2160, 1440, 1080, 720, 480, 360, 240)
     fun label(height: Int) = if (height == 0) "Best available" else "${height}p"
-    fun selector(height: Int): String {
-        require(height == 0 || height in 1..4320) { "Unsupported quality preference" }
+    /** Resolution is capped by [sort], not here, so this selector is the same for every preference. */
+    fun selector(): String {
         return "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo[ext=mp4]+bestaudio/bestvideo[ext=mp4]/bv*+ba/b"
     }
     fun sort(height: Int): String? = if (height == 0) null else "res:$height"
