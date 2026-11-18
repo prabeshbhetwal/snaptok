@@ -19,18 +19,18 @@ class VideoQualityTest {
     }
     @Test fun supportsSourcesThatAreActuallySilent() {
         assertEquals(listOf(480), VideoQuality.heights(listOf(VideoFormat("mp4", 480, true, false))))
-        assertTrue(VideoQuality.selector(480).endsWith("/bestvideo[ext=mp4]/bv*+ba/b"))
+        assertTrue(VideoQuality.selector().endsWith("/bestvideo[ext=mp4]/bv*+ba/b"))
     }
     @Test fun unknownCodecMetadataOnXDoesNotHideValidMp4Qualities() {
         val direct = VideoQuality.format("mp4", 720, 720, null, null)
         val separateVideo = VideoQuality.format("mp4", 1080, 1080, "avc1", "none")
         val audioOnly = VideoQuality.format("mp4", 0, 0, "none", "aac")
         assertEquals(listOf(1080, 720), VideoQuality.heights(listOf(direct, separateVideo, audioOnly)))
-        assertFalse(VideoQuality.selector(720).contains("[vcodec!="))
+        assertFalse(VideoQuality.selector().contains("[vcodec!="))
     }
     @Test fun qualityPreferenceDoesNotUpscaleOrRequireAnUnavailableExactFormat() {
         assertEquals("res:720", VideoQuality.sort(720))
         assertNull(VideoQuality.sort(0))
-        assertFalse(VideoQuality.selector(720).contains("[height=720]"))
+        assertFalse(VideoQuality.selector().contains("[height=720]"))
     }
 }

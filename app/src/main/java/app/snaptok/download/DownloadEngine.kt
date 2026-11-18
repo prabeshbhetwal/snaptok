@@ -2,6 +2,7 @@ package app.snaptok.download
 
 import android.content.Context
 import app.snaptok.data.DownloadJob
+import app.snaptok.core.DownloadDiagnostics
 import app.snaptok.core.VideoQuality
 import app.snaptok.core.AvailableQualities
 import app.snaptok.core.MediaChoice
@@ -20,6 +21,8 @@ import java.io.File
 /** Native extraction stays behind this boundary so the provider can be replaced. */
 interface DownloadEngine {
     suspend fun download(job: DownloadJob, directory: File, progress: (Int) -> Unit): DownloadedVideo
+    /** True when the extractor is old enough that updating it is a likely cure for extraction failures. */
+    fun isStale(): Boolean = false
 }
 data class DownloadedVideo(val file: File, val title: String, val creator: String = "", val caption: String = "", val sourceId: String = "", val audioOnly: Boolean = false,
     val photo: Boolean = false, val extraOutputs: List<DownloadedVideo> = emptyList()) {
@@ -29,6 +32,8 @@ data class DownloadedVideo(val file: File, val title: String, val creator: Strin
 
 class YtDlpEngine(private val context: Context) : DownloadEngine {
     private val mutex = Mutex()
+    // "Check post" only reads metadata, so it must not queue behind an hour-long download.
+    private val inspectMutex = Mutex()
     override suspend fun download(job: DownloadJob, directory: File, progress: (Int) -> Unit): DownloadedVideo = mutex.withLock {
         kotlinx.coroutines.withTimeout(10 * 60 * 1000L) { PhotoDownloader(context).downloadIfPhoto(job, directory, progress) }?.let { return@withLock it }
         withTimeout(60 * 60 * 1000L) { runInterruptible(Dispatchers.IO) {
@@ -53,7 +58,7 @@ class YtDlpEngine(private val context: Context) : DownloadEngine {
                     addOption("--extract-audio")
                     addOption("--audio-format", "m4a")
                 } else {
-                    addOption("-f", VideoQuality.selector(job.qualityHeight))
+                    addOption("-f", VideoQuality.selector())
                     addOption("--merge-output-format", "mp4")
                     addOption("--remux-video", "mp4")
                 }
@@ -62,9 +67,9 @@ class YtDlpEngine(private val context: Context) : DownloadEngine {
                 VideoQuality.sort(job.qualityHeight)?.let { addOption("-S", it) }
                 addOption("-o", File(directory, "video.%(ext)s").absolutePath)
             }
-            YoutubeDL.execute(request, job.id) { value, _, _ -> progress(value.toInt().coerceIn(0, 100)) }
+            val response = YoutubeDL.execute(request, job.id) { value, _, _ -> progress(value.toInt().coerceIn(0, 100)) }
             val file = File(directory, if (job.audioOnly) "video.m4a" else "video.mp4")
-            check(file.isFile) { "No downloadable media returned" }
+            check(file.isFile) { DownloadDiagnostics.skipReason(response.out) ?: "No downloadable media returned" }
             check(file.length() <= job.maxSizeMb.toLong() * 1024 * 1024) { "Video exceeds the selected file size limit" }
             val info = File(directory, "video.info.json")
             val metadata = runCatching { JSONObject(info.readText()) }.getOrNull()
@@ -87,7 +92,7 @@ class YtDlpEngine(private val context: Context) : DownloadEngine {
         } }
     }
 
-    suspend fun inspect(url: String): AvailableQualities = mutex.withLock {
+    suspend fun inspect(url: String): AvailableQualities = inspectMutex.withLock {
         withTimeout(90_000L) { runInterruptible(Dispatchers.IO) {
             YoutubeDL.init(context)
             val request = YoutubeDLRequest(url).apply {
@@ -121,5 +126,7 @@ class YtDlpEngine(private val context: Context) : DownloadEngine {
             YoutubeDL.versionName(context) ?: "Latest stable engine"
         }
     }
-    fun version(): String = YoutubeDL.versionName(context) ?: "Bundled · 2026.08.19"
+    override fun isStale() = DownloadDiagnostics.isStale(YoutubeDL.versionName(context) ?: BUNDLED_VERSION, java.time.LocalDate.now())
+    fun version(): String = YoutubeDL.versionName(context) ?: "Bundled · $BUNDLED_VERSION"
+    private companion object { const val BUNDLED_VERSION = "2026.08.19" }
 }

@@ -28,7 +28,7 @@ class MediaPipelineTest {
             val metadata = File(root, "info.json").apply { writeText(info.toString()) }
             val output = File(root,"merged.mp4")
             val request = YoutubeDLRequest(emptyList<String>()).addOption("--load-info-json",metadata.absolutePath).addOption("--enable-file-urls")
-                .addOption("-f",VideoQuality.selector(0)).addOption("--merge-output-format","mp4").addOption("-o",output.absolutePath)
+                .addOption("-f",VideoQuality.selector()).addOption("--merge-output-format","mp4").addOption("-o",output.absolutePath)
             YoutubeDL.execute(request, "merge-fixture", null)
             MediaMetadataRetriever().use { media -> media.setDataSource(output.absolutePath)
                 assertEquals("yes",media.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO))
